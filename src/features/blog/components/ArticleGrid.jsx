@@ -1,13 +1,9 @@
 import { articles } from '../../../data/articles'
 import { ArticleCard } from './ArticleCard'
-import { ArticleToolbar } from './ArticleToolbar'
 
 export function ArticleGrid() {
   return (
-    <section className="pt-6">
-      <h2 className="text-2xl font-black tracking-tight text-neutral-950">Latest articles</h2>
-      <ArticleToolbar />
-
+    <section>
       <div className="mt-8 grid gap-x-5 gap-y-12 md:grid-cols-2">
         {articles.map((article) => (
           <ArticleCard key={article.id} article={article} />
