@@ -9,6 +9,43 @@ const contactLinks = [
   { label: 'Location', href: '#location', Icon: MapPin },
 ]
 
+const navLinks = [
+  {
+    label: 'Log in',
+    href: '#login',
+    className:
+      'border border-neutral-300 text-neutral-900 hover:bg-white',
+  },
+  {
+    label: 'Sign up',
+    href: '#signup',
+    className:
+      'bg-neutral-950 text-white hover:bg-neutral-800',
+  },
+]
+
+const heroTitleLines = ['Stay', 'Informed,', 'Stay Inspired']
+
+const landingClasses = {
+  navLinkBase:
+    'rounded-full px-5 py-2 text-sm font-semibold transition',
+  heroTitle:
+    'text-5xl font-black leading-[0.95] tracking-[-0.08em] text-neutral-950 sm:text-6xl lg:text-7xl',
+  footerContactIcon:
+    'grid size-8 place-items-center rounded-full bg-neutral-900 text-white transition hover:bg-neutral-700',
+}
+
+function NavActionLink({ href, label, className }) {
+  return (
+    <a
+      href={href}
+      className={`${landingClasses.navLinkBase} ${className}`}
+    >
+      {label}
+    </a>
+  )
+}
+
 export function NavBar() {
   return (
     <header className="border-b border-stone-200 bg-[#f8f7f4]/90 backdrop-blur">
@@ -18,18 +55,9 @@ export function NavBar() {
         </a>
 
         <nav className="flex items-center gap-3" aria-label="Main navigation">
-          <a
-            href="#login"
-            className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-white"
-          >
-            Log in
-          </a>
-          <a
-            href="#signup"
-            className="rounded-full bg-neutral-950 px-5 py-2 text-sm font-semibold text-white transition hover:bg-neutral-800"
-          >
-            Sign up
-          </a>
+          {navLinks.map((link) => (
+            <NavActionLink key={link.href} {...link} />
+          ))}
         </nav>
       </Container>
     </header>
@@ -41,12 +69,13 @@ export function HeroSection() {
     <section className="py-12 md:py-16">
       <div className="grid items-center gap-8 md:grid-cols-[1fr_330px_1fr] md:gap-12">
         <div className="text-center md:text-right">
-          <h1 className="text-5xl font-black leading-[0.95] tracking-[-0.08em] text-neutral-950 sm:text-6xl lg:text-7xl">
-            Stay
-            <br />
-            Informed,
-            <br />
-            Stay Inspired
+          <h1 className={landingClasses.heroTitle}>
+            {heroTitleLines.map((line, index) => (
+              <span key={line}>
+                {line}
+                {index < heroTitleLines.length - 1 && <br />}
+              </span>
+            ))}
           </h1>
           <p className="mx-auto mt-6 max-w-sm text-sm leading-6 text-neutral-600 md:ml-auto md:mr-0">
             Discover a world of knowledge at Your Fingertips. Your daily dose of
@@ -87,7 +116,7 @@ export function Footer() {
                 key={label}
                 href={href}
                 aria-label={label}
-                className="grid size-8 place-items-center rounded-full bg-neutral-900 text-white transition hover:bg-neutral-700"
+                className={landingClasses.footerContactIcon}
               >
                 <Icon size={16} strokeWidth={2} />
               </a>
