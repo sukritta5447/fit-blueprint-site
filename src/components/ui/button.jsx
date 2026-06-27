@@ -47,7 +47,11 @@ function Button({
   asChild = false,
   ...props
 }) {
-  const Comp = asChild ? Slot.Root : "button"
+  let Comp = "button"
+
+  if (asChild) {
+    Comp = Slot.Root
+  }
 
   return (
     <Comp

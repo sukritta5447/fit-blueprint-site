@@ -28,9 +28,9 @@ const heroTitleLines = ['Stay', 'Informed,', 'Stay Inspired']
 
 const landingClasses = {
   navLinkBase:
-    'rounded-full px-5 py-2 text-sm font-semibold transition',
+    'rounded-full px-5 py-2 text-sm font-medium transition',
   heroTitle:
-    'text-5xl font-black leading-[0.95] tracking-[-0.08em] text-neutral-950 sm:text-6xl lg:text-7xl',
+    'text-4xl font-semibold leading-[60px] text-neutral-950 sm:text-4xl lg:text-5xl',
   footerContactIcon:
     'grid size-8 place-items-center rounded-full bg-neutral-900 text-white transition hover:bg-neutral-700',
 }
@@ -50,7 +50,7 @@ export function NavBar() {
   return (
     <header className="border-b border-stone-200 bg-[#f8f7f4]/90 backdrop-blur">
       <Container className="flex h-16 items-center justify-between">
-        <a className="text-xl font-semibold tracking-tight text-neutral-950" href="/">
+        <a className="text-xl font-medium tracking-tight text-neutral-950" href="/">
           JB Fit Blueprint
         </a>
 
@@ -86,14 +86,14 @@ export function HeroSection() {
         <div className="overflow-hidden rounded-2xl bg-stone-200 shadow-sm">
           <img
             src="https://images.unsplash.com/photo-1574158622682-e40e69881006?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Author enjoying a sunny day outdoors"
+            alt="Cat enjoying a sunny day outdoors"
             className="h-[420px] w-full object-cover"
           />
         </div>
 
         <div className="mx-auto max-w-sm text-center md:text-left">
-          <p className="text-xs font-semibold text-neutral-500">{featuredAuthor.role}</p>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-neutral-950">
+          <p className="text-xs font-medium text-neutral-500">{featuredAuthor.role}</p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
             {featuredAuthor.name}
           </h2>
           <p className="mt-4 text-sm leading-6 text-neutral-600">{featuredAuthor.bio}</p>
