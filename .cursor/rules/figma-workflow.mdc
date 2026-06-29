@@ -1,0 +1,24 @@
+---
+description: Figma-to-code workflow for UI implementation
+globs: "**/*.{jsx,css}"
+alwaysApply: false
+---
+
+# Figma Workflow
+
+## Design File
+
+https://www.figma.com/design/4LFRzDFgPl60EyEnYsiCSW/My-Personal-Blog-Project?node-id=19-2724
+
+## When Implementing UI
+
+1. Read the target Figma frame via Figma MCP tools first
+2. Compare with existing components in `src/components/` and `src/components/ui/`
+3. Map colors and spacing to tokens in `src/styles/index.css` or shadcn variables
+4. Reuse `@/components/ui/*` primitives before writing custom markup
+5. After implementation, verify spacing, typography, and colors against the Figma frame
+
+## MCP Fallback
+
+- Primary: remote Figma MCP (`https://mcp.figma.com/mcp`) via Figma plugin
+- Fallback: Figma Desktop Dev Mode MCP at `http://127.0.0.1:3845/mcp` (requires Figma desktop app with file open in Dev Mode)

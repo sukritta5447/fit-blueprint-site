@@ -1,0 +1,16 @@
+---
+description: Core project conventions for fit-blueprint-site
+alwaysApply: true
+---
+
+# Core Conventions
+
+- Use JavaScript JSX (`.jsx`) � do not convert to TypeScript unless asked
+- Import alias: `@/*` maps to `src/*`
+- Use named exports for components
+- Merge Tailwind classes with `cn()` from `@/lib/utils`
+- Put feature logic in `src/features/*`
+- Put static mock data in `src/data/*`
+- Put shared UI primitives in `src/components/ui/*`
+- Put page shell in `src/app/App.jsx`
+- Brand name in UI: **JB Fit Blueprint**

@@ -1,0 +1,36 @@
+---
+description: React component patterns for this project
+globs: "**/*.{jsx,js}"
+alwaysApply: false
+---
+
+# React Patterns
+
+## Structure
+
+- DRY: render repeated UI from arrays with `.map()` instead of copy-paste JSX
+- Pass props explicitly (e.g. `title`, `excerpt`, `author`) � avoid `{ article }` object props
+- Extract long Tailwind strings into class constant objects (e.g. `articleCardClasses`)
+- Use feature folders for domain logic (`src/features/blog/`)
+
+## Conditional Classes
+
+Prefer `if/else` over ternary for conditional class names:
+
+```jsx
+let tabClass = 'rounded-full px-4 py-2 text-sm'
+if (isActive) {
+  tabClass += ' bg-neutral-900 text-white'
+} else {
+  tabClass += ' text-neutral-600 hover:bg-neutral-100'
+}
+```
+
+## Variants
+
+Use a `variant` prop for responsive or layout differences (e.g. `variant="desktop"` | `"mobile"`).
+
+## Components
+
+- Use shadcn/ui primitives from `@/components/ui/*` before writing custom elements
+- Use `Button`, `Input`, etc. with CVA variants where applicable

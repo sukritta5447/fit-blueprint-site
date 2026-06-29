@@ -1,0 +1,32 @@
+---
+description: Design system tokens and UI conventions
+globs: "**/*.{jsx,css}"
+alwaysApply: false
+---
+
+# Design System
+
+## Typography
+
+- Font: Poppins (Google Fonts)
+- Body: weight 500 (`font-medium`)
+- Headings (`h1`�`h6`): weight 600 (`font-semibold`)
+
+## Brand Colors
+
+- Page background: `#f8f7f4`
+- Panel / filter bar: `#eeece9`
+- Text: `neutral-*`, `stone-*`, `emerald-*`, `amber-*`
+- Selection highlight: `#d6f5e1` on `#0a0a0a`
+
+## Tokens
+
+- Semantic tokens in `src/styles/index.css`: `--background`, `--foreground`, `--primary`, `--radius`, etc.
+- shadcn style: `radix-nova`, base color `neutral`
+- Prefer shadcn CSS variables over hardcoded hex when adding new semantic colors
+
+## UI Library
+
+- Use shadcn/ui + Radix primitives before custom components
+- Use `cn()` for class merging
+- Use Lucide icons (`lucide-react`)
