@@ -1,9 +1,12 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+
 import ArticleSection from '../components/ArticleSection'
+import { ArticleGrid } from '../components/ArticleGrid'
+import { ArticlePage } from '../components/ArticlePage'
 import { Container } from '../components/common/Container'
 import { Footer, HeroSection, NavBar } from '../components/LandingSections'
-import { ArticleGrid } from '../features/blog/components/ArticleGrid'
 
-function App() {
+function LandingPage() {
   return (
     <div className="min-h-screen bg-[#f8f7f4] text-neutral-900">
       <NavBar />
@@ -16,6 +19,17 @@ function App() {
       </main>
       <Footer />
     </div>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/article/:id" element={<ArticlePage />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

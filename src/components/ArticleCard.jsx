@@ -1,32 +1,32 @@
 const articleCardClasses = {
   image:
-    'h-72 w-full object-cover transition duration-500 group-hover:scale-105',
+    "h-72 w-full object-cover transition duration-500 group-hover:scale-105",
   title:
-    'mt-3 text-xl font-semibold leading-tight tracking-tight text-neutral-950 transition group-hover:text-neutral-600',
-  excerpt: 'mt-3 line-clamp-2 text-sm leading-6 text-neutral-500',
-  meta: 'mt-4 flex items-center gap-3 text-xs font-medium text-neutral-500',
-}
+    "mt-3 text-xl font-semibold leading-tight tracking-tight text-neutral-950 transition group-hover:text-neutral-600",
+  excerpt: "mt-3 line-clamp-2 text-sm leading-6 text-neutral-500",
+  meta: "mt-4 flex items-center gap-3 text-xs font-medium text-neutral-500",
+};
 
 function getAuthorInitials(author) {
   return author
-    .split(' ')
+    .split(" ")
     .map((name) => name[0])
-    .join('')
+    .join("")
     .slice(0, 2)
-    .toUpperCase()
+    .toUpperCase();
 }
 
 function ArticleMeta({ author, date, isoDate }) {
   const metaItems = [
     {
-      key: 'author',
+      key: "author",
       content: author,
     },
     {
-      key: 'date',
+      key: "date",
       content: <time dateTime={isoDate}>{date}</time>,
     },
-  ]
+  ];
 
   return (
     <div className={articleCardClasses.meta}>
@@ -41,7 +41,7 @@ function ArticleMeta({ author, date, isoDate }) {
         </span>
       ))}
     </div>
-  )
+  );
 }
 
 export function ArticleCard({
@@ -56,13 +56,9 @@ export function ArticleCard({
 }) {
   return (
     <article className="group">
-      <a href={`#article-${id}`} className="block">
+      <a href={`/article/${id}`} className="block">
         <div className="overflow-hidden rounded-xl bg-stone-200">
-          <img
-            src={image}
-            alt=""
-            className={articleCardClasses.image}
-          />
+          <img src={image} alt="" className={articleCardClasses.image} />
         </div>
 
         <div className="mt-4">
@@ -76,5 +72,5 @@ export function ArticleCard({
         <ArticleMeta author={author} date={date} isoDate={isoDate} />
       </a>
     </article>
-  )
+  );
 }
