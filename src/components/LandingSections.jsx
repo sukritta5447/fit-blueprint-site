@@ -1,12 +1,13 @@
-import { Mail, MapPin, Phone } from 'lucide-react'
+import { useState } from 'react'
+import { Menu } from 'lucide-react'
 
 import { featuredAuthor } from '../data/articles'
 import { Container } from './common/Container'
 
 const contactLinks = [
-  { label: 'Email', href: 'mailto:hello@example.com', Icon: Mail },
-  { label: 'Phone', href: 'tel:+66000000000', Icon: Phone },
-  { label: 'Location', href: '#location', Icon: MapPin },
+  { label: 'LinkedIn', href: '#linkedin', text: 'in' },
+  { label: 'GitHub', href: '#github', text: 'GH' },
+  { label: 'Google', href: '#google', text: 'G' },
 ]
 
 const navLinks = [
@@ -29,10 +30,14 @@ const heroTitleLines = ['Stay', 'Informed,', 'Stay Inspired']
 const landingClasses = {
   navLinkBase:
     'rounded-full px-5 py-2 text-sm font-medium transition',
+  mobileNavLinkBase:
+    'flex h-12 w-full items-center justify-center rounded-full text-base font-medium transition',
+  mobileMenuPanel:
+    'border-b border-stone-200 bg-[#f8f7f4] px-6 py-8 shadow-sm md:hidden',
   heroTitle:
     'text-4xl font-semibold leading-[60px] text-neutral-950 sm:text-4xl lg:text-5xl',
   footerContactIcon:
-    'grid size-8 place-items-center rounded-full bg-neutral-900 text-white transition hover:bg-neutral-700',
+    'grid size-8 place-items-center rounded-full bg-neutral-700 text-[13px] font-semibold leading-none text-white transition hover:bg-neutral-900',
 }
 
 function NavActionLink({ href, label, className }) {
@@ -47,6 +52,8 @@ function NavActionLink({ href, label, className }) {
 }
 
 export function NavBar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
   return (
     <header className="border-b border-stone-200 bg-[#f8f7f4]/90 backdrop-blur">
       <Container className="flex h-16 items-center justify-between">
@@ -54,12 +61,39 @@ export function NavBar() {
           JB Fit Blueprint
         </a>
 
-        <nav className="flex items-center gap-3" aria-label="Main navigation">
+        <nav className="hidden items-center gap-3 md:flex" aria-label="Main navigation">
           {navLinks.map((link) => (
             <NavActionLink key={link.href} {...link} />
           ))}
         </nav>
+
+        <button
+          type="button"
+          className="grid size-10 place-items-center text-neutral-900 md:hidden"
+          aria-label="Toggle navigation menu"
+          aria-expanded={isMenuOpen}
+          onClick={() => setIsMenuOpen((current) => !current)}
+        >
+          <Menu size={24} strokeWidth={1.6} />
+        </button>
       </Container>
+
+      {isMenuOpen && (
+        <div className={landingClasses.mobileMenuPanel}>
+          <nav className="space-y-6" aria-label="Mobile navigation">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className={`${landingClasses.mobileNavLinkBase} ${link.className}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   )
 }
@@ -106,26 +140,26 @@ export function HeroSection() {
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-stone-200 bg-stone-100 py-12">
-      <Container className="flex flex-col gap-8 text-sm text-neutral-800 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <span>Get in touch</span>
-          <div className="flex items-center gap-2">
-            {contactLinks.map(({ label, href, Icon }) => (
+    <footer className="mt-24 bg-[#f8f7f4] py-10">
+      <Container className="flex flex-col items-center gap-6 text-center text-neutral-900 md:flex-row md:justify-between md:text-left">
+        <div className="flex items-center justify-center gap-4">
+          <span className="text-base font-semibold">Get in touch</span>
+          <div className="flex items-center gap-3">
+            {contactLinks.map(({ label, href, text }) => (
               <a
                 key={label}
                 href={href}
                 aria-label={label}
                 className={landingClasses.footerContactIcon}
               >
-                <Icon size={16} strokeWidth={2} />
+                {text}
               </a>
             ))}
           </div>
         </div>
 
-        <a href="mailto:hello@example.com" className="hover:text-neutral-950 hover:underline">
-          hello@example.com
+        <a href="/" className="text-lg font-semibold underline underline-offset-2 hover:text-neutral-700">
+          Home page
         </a>
       </Container>
     </footer>
