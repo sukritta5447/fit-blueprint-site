@@ -1,14 +1,19 @@
-import { ChevronDown, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 import { categories } from '../data/articles'
 import { Input } from './ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
 
 const articleSectionClasses = {
-  title: 'text-[2rem] font-semibold tracking-tight text-neutral-900 md:text-2xl',
+  title: 'text-2xl font-semibold tracking-tight text-neutral-900 md:text-2xl',
   panel:
-    'mt-8 rounded-none bg-[#eeece9] px-5 py-6 md:mt-6 md:rounded-xl md:p-3',
-  mobileCategoryButton:
-    'flex h-[76px] w-full items-center justify-between rounded-xl border border-stone-300 bg-white px-6 text-3xl font-medium text-neutral-500',
+    'mt-6 -mx-5 rounded-none bg-[#eeece9] px-5 py-5 md:mx-0 md:mt-6 md:rounded-xl md:p-3',
 }
 
 const searchFieldStyles = {
@@ -22,9 +27,9 @@ const searchFieldStyles = {
   mobile: {
     label: 'relative block',
     input:
-      'h-[76px] rounded-xl border-stone-300 bg-white pl-6 pr-14 text-3xl font-medium shadow-none placeholder:text-neutral-500',
-    icon: 'absolute right-6 top-1/2 size-8 -translate-y-1/2 text-neutral-900',
-    strokeWidth: 1.5,
+      'h-12 rounded-xl border-stone-300 bg-white pl-5 pr-12 text-sm shadow-none placeholder:text-neutral-500',
+    icon: 'absolute right-4 top-1/2 size-5 -translate-y-1/2 text-neutral-500',
+    strokeWidth: 1.8,
   },
 }
 
@@ -48,16 +53,19 @@ function SearchField({ variant = 'desktop' }) {
   )
 }
 
-function CategoryTab({ category, isActive }) {
-  let stateClasses = 'text-neutral-500 hover:bg-white hover:text-neutral-900'
+function CategoryTab({ category, isActive, onSelectCategory }) {
+  let stateClasses =
+    'text-neutral-500 hover:bg-white/70 hover:text-neutral-900'
 
   if (isActive) {
-    stateClasses = 'bg-neutral-200 text-neutral-900 shadow-sm'
+    stateClasses = 'bg-neutral-300 text-neutral-950 shadow-sm disabled:opacity-100'
   }
 
   return (
     <button
       type="button"
+      disabled={isActive}
+      onClick={() => onSelectCategory(category)}
       className={`rounded-md px-5 py-3 text-sm font-medium transition ${stateClasses}`}
     >
       {category}
@@ -65,55 +73,66 @@ function CategoryTab({ category, isActive }) {
   )
 }
 
-function CategoryTabs() {
+function CategoryTabs({ selectedCategory, onSelectCategory }) {
   return (
     <div className="flex items-center gap-3">
-      {categories.map((category, index) => (
+      {categories.map((category) => (
         <CategoryTab
           key={category}
           category={category}
-          isActive={index === 0}
+          isActive={category === selectedCategory}
+          onSelectCategory={onSelectCategory}
         />
       ))}
     </div>
   )
 }
 
-function MobileCategoryFilter() {
+function MobileCategoryFilter({ selectedCategory, onSelectCategory }) {
   return (
     <div>
-      <p className="mb-3 text-2xl font-semibold tracking-tight text-neutral-500">
+      <p className="mb-2 text-sm font-medium text-neutral-500">
         Category
       </p>
-      <button
-        type="button"
-        className={articleSectionClasses.mobileCategoryButton}
+      <Select
+        value={selectedCategory}
+        onValueChange={onSelectCategory}
       >
-        <span>{categories[0]}</span>
-        <ChevronDown
-          aria-hidden="true"
-          className="size-8 text-neutral-900"
-          strokeWidth={1.5}
-        />
-      </button>
+        <SelectTrigger>
+          <SelectValue placeholder="Select category" />
+        </SelectTrigger>
+        <SelectContent>
+          {categories.map((category) => (
+            <SelectItem key={category} value={category}>
+              {category}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }
 
-function ArticleSection() {
+function ArticleSection({ selectedCategory, onSelectCategory }) {
   return (
     <section className="pt-6">
       <h2 className={articleSectionClasses.title}>Latest articles</h2>
 
       <div className={articleSectionClasses.panel}>
         <div className="hidden items-center justify-between gap-6 md:flex">
-          <CategoryTabs />
+          <CategoryTabs
+            selectedCategory={selectedCategory}
+            onSelectCategory={onSelectCategory}
+          />
           <SearchField />
         </div>
 
         <div className="space-y-7 md:hidden">
           <SearchField variant="mobile" />
-          <MobileCategoryFilter />
+          <MobileCategoryFilter
+            selectedCategory={selectedCategory}
+            onSelectCategory={onSelectCategory}
+          />
         </div>
       </div>
     </section>
