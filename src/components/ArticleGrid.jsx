@@ -7,11 +7,21 @@ const articleGridClasses = {
     'text-sm font-medium text-neutral-950 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-950',
 }
 
-export function ArticleGrid() {
+function getVisibleArticles(selectedCategory) {
+  if (selectedCategory === 'Highlight') {
+    return articles
+  }
+
+  return articles.filter((article) => article.category === selectedCategory)
+}
+
+export function ArticleGrid({ selectedCategory }) {
+  const visibleArticles = getVisibleArticles(selectedCategory)
+
   return (
     <section>
       <div className={articleGridClasses.grid}>
-        {articles.map((article) => (
+        {visibleArticles.map((article) => (
           <ArticleCard key={article.id} {...article} />
         ))}
       </div>
