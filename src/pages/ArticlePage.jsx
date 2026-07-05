@@ -164,9 +164,19 @@ function AuthorCard({ className = '' }) {
   return (
     <aside className={className}>
       <div className={pageClasses.authorCard}>
-        <p className="text-sm font-semibold text-neutral-950">{featuredAuthor.name}</p>
-        <p className="text-xs text-neutral-400">{featuredAuthor.role}</p>
-        <p className="mt-3 text-xs leading-5 text-neutral-600">{featuredAuthor.bio}</p>
+        <div className="flex items-center gap-3">
+          <img
+            src={featuredAuthor.image}
+            alt={featuredAuthor.name}
+            className="size-10 rounded-full object-cover"
+          />
+          <div>
+            <p className="text-[10px] font-medium text-neutral-400">{featuredAuthor.role}</p>
+            <p className="text-sm font-semibold text-neutral-950">{featuredAuthor.name}</p>
+          </div>
+        </div>
+        <hr className="my-4 border-stone-200" />
+        <p className="text-xs leading-5 text-neutral-600">{featuredAuthor.bio}</p>
         <p className="mt-3 text-xs leading-5 text-neutral-500">{featuredAuthor.note}</p>
       </div>
     </aside>
