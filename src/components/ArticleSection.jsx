@@ -33,7 +33,7 @@ const searchFieldStyles = {
   },
 }
 
-function SearchField({ variant = 'desktop' }) {
+function SearchField({ variant = 'desktop', value, onChange }) {
   const styles = searchFieldStyles[variant]
 
   return (
@@ -42,6 +42,8 @@ function SearchField({ variant = 'desktop' }) {
       <Input
         type="search"
         placeholder="Search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
         className={styles.input}
       />
       <Search
@@ -113,7 +115,12 @@ function MobileCategoryFilter({ selectedCategory, onSelectCategory }) {
   )
 }
 
-function ArticleSection({ selectedCategory, onSelectCategory }) {
+function ArticleSection({
+  selectedCategory,
+  onSelectCategory,
+  searchKeyword,
+  onSearchKeywordChange,
+}) {
   return (
     <section className="pt-6">
       <h2 className={articleSectionClasses.title}>Latest articles</h2>
@@ -124,11 +131,18 @@ function ArticleSection({ selectedCategory, onSelectCategory }) {
             selectedCategory={selectedCategory}
             onSelectCategory={onSelectCategory}
           />
-          <SearchField />
+          <SearchField
+            value={searchKeyword}
+            onChange={onSearchKeywordChange}
+          />
         </div>
 
         <div className="space-y-7 md:hidden">
-          <SearchField variant="mobile" />
+          <SearchField
+            variant="mobile"
+            value={searchKeyword}
+            onChange={onSearchKeywordChange}
+          />
           <MobileCategoryFilter
             selectedCategory={selectedCategory}
             onSelectCategory={onSelectCategory}

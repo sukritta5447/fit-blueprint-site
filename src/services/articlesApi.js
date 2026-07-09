@@ -1,11 +1,32 @@
+import axios from "axios";
+
 const API_BASE_URL = "https://blog-post-project-api.vercel.app";
 
-export async function getPosts() {
-  const response = await fetch(`${API_BASE_URL}/posts`);
+function formatPostDate(isoDate) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(isoDate));
+}
+function mapPost(post) {
+  return {
+    ...post,
+    excerpt: post.description,
+    isoDate: post.date,
+    date: formatPostDate(post.date),
+  };
+}
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch posts");
-  }
+export async function getPosts(category = "Highlight") {
+  const response = await axios.get(`${API_BASE_URL}/posts`, {
+    params:
+      category === "Highlight"
+        ? {}
+        : {
+            category,
+          },
+  });
 
-  return response.json();
+  return response.data.posts.map(mapPost);
 }
