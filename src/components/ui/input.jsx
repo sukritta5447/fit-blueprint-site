@@ -1,4 +1,4 @@
-import { cn } from "../utils"
+import { cn } from "../../utils/utils"
 
 function Input({ className, type, ...props }) {
   return (
