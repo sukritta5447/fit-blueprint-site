@@ -1,7 +1,7 @@
 import { Check, ChevronDown } from "lucide-react"
 import { Select as SelectPrimitive } from "radix-ui"
 
-import { cn } from "../utils"
+import { cn } from "../../utils/utils"
 
 const selectClasses = {
   trigger:

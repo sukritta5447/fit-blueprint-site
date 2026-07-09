@@ -1,16 +1,18 @@
-import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
+import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 
-import { cn } from "../utils"
+import { cn } from "../../utils/utils";
 
 const dropdownMenuClasses = {
   content:
     "z-50 min-w-56 rounded-2xl border border-stone-200 bg-[#f8f7f4] p-6 shadow-lg",
   item: "outline-none",
-}
+};
 
 // Root controls the open/close state of the dropdown menu.
 function DropdownMenu({ ...rootProps }) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...rootProps} />
+  return (
+    <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...rootProps} />
+  );
 }
 
 // Trigger is the button the user clicks, e.g. the hamburger icon.
@@ -20,7 +22,7 @@ function DropdownMenuTrigger({ ...triggerProps }) {
       data-slot="dropdown-menu-trigger"
       {...triggerProps}
     />
-  )
+  );
 }
 
 // Content is the floating panel. Portal keeps it above the rest of the page.
@@ -41,7 +43,7 @@ function DropdownMenuContent({
         {children}
       </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>
-  )
+  );
 }
 
 // Item is one clickable row/link inside the dropdown menu.
@@ -52,7 +54,7 @@ function DropdownMenuItem({ className, ...itemProps }) {
       className={cn(dropdownMenuClasses.item, className)}
       {...itemProps}
     />
-  )
+  );
 }
 
 export {
@@ -60,4 +62,4 @@ export {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-}
+};
