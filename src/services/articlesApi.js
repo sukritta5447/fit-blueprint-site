@@ -18,15 +18,24 @@ function mapPost(post) {
   };
 }
 
-export async function getPosts(category = "Highlight") {
+export async function getPosts({
+  category = "Highlight",
+  page = 1,
+  limit = 6,
+} = {}) {
   const response = await axios.get(`${API_BASE_URL}/posts`, {
     params:
       category === "Highlight"
-        ? {}
+        ? { page, limit }
         : {
             category,
+            page,
+            limit,
           },
   });
 
-  return response.data.posts.map(mapPost);
+  return {
+    ...response.data,
+    posts: response.data.posts.map(mapPost),
+  };
 }
