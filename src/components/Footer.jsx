@@ -1,3 +1,4 @@
+import { footerClasses } from '@/styles/footer.styles'
 import { Container } from './common/Container'
 
 const contactLinks = [
@@ -5,11 +6,6 @@ const contactLinks = [
   { label: 'GitHub', href: '#github', icon: 'github' },
   { label: 'Google', href: '#google', text: 'G' },
 ]
-
-const footerClasses = {
-  contactIcon:
-    'grid size-6 place-items-center rounded-full bg-neutral-700 text-[11px] font-semibold leading-none text-[#f8f7f4] transition hover:bg-neutral-900 sm:size-8 sm:text-[13px]',
-}
 
 function GitHubIcon() {
   return (
