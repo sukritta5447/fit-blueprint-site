@@ -12,6 +12,7 @@ alwaysApply: false
 - Pass props explicitly (e.g. `title`, `excerpt`, `author`) - avoid `{ article }` object props
 - Extract long Tailwind strings into class constant objects (e.g. `articleCardClasses`)
 - Keep page-level components in `src/pages/*` and reusable components in `src/components/*`
+- write code with these quality: DRY (Don’t Repeat Yourself), High Cohesion, Loose Coupling, Single Responsibility Principle (SRP)
 
 ## Beginner-Friendly Code
 
@@ -27,11 +28,11 @@ alwaysApply: false
 Prefer `if/else` over ternary for conditional class names:
 
 ```jsx
-let tabClass = 'rounded-full px-4 py-2 text-sm'
+let tabClass = "rounded-full px-4 py-2 text-sm";
 if (isActive) {
-  tabClass += ' bg-neutral-900 text-white'
+  tabClass += " bg-neutral-900 text-white";
 } else {
-  tabClass += ' text-neutral-600 hover:bg-neutral-100'
+  tabClass += " text-neutral-600 hover:bg-neutral-100";
 }
 ```
 
