@@ -235,7 +235,7 @@ function CommentSection({ onAuthRequired }) {
   );
 }
 
-function AuthRequiredModal({ onClose }) {
+function AuthRequiredModal({ onClose, returnPath }) {
   return (
     <div className={pageClasses.modalOverlay} role="presentation">
       <div
@@ -257,15 +257,19 @@ function AuthRequiredModal({ onClose }) {
           Create an account to continue
         </h2>
 
-        <a href="#signup" className={pageClasses.modalPrimary}>
+        <Link
+          to="/signup"
+          state={{ from: returnPath }}
+          className={pageClasses.modalPrimary}
+        >
           Create account
-        </a>
+        </Link>
 
         <p className={pageClasses.modalFooter}>
           <span>Already have an account?</span>
-          <a href="#login" className={pageClasses.modalLogin}>
+          <Link to="/login" className={pageClasses.modalLogin}>
             Log in
-          </a>
+          </Link>
         </p>
       </div>
     </div>
@@ -310,6 +314,7 @@ export function ArticlePage() {
     `/article/${article.id}`,
     window.location.origin,
   ).toString();
+  const articlePath = `/article/${article.id}`;
 
   return (
     <PageShell>
@@ -334,7 +339,10 @@ export function ArticlePage() {
       </main>
 
       {isAuthModalOpen && (
-        <AuthRequiredModal onClose={() => setIsAuthModalOpen(false)} />
+        <AuthRequiredModal
+          returnPath={articlePath}
+          onClose={() => setIsAuthModalOpen(false)}
+        />
       )}
     </PageShell>
   );

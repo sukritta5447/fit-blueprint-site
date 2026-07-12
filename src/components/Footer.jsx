@@ -21,7 +21,7 @@ function GitHubIcon() {
 
 export function Footer() {
   return (
-    <footer className="mt-24 bg-[#f8f7f4] py-10">
+    <footer className="bg-[#f8f7f4] py-10">
       <Container className="flex flex-col items-center gap-6 text-center text-neutral-900 sm:flex-row sm:justify-between sm:text-left">
         <div className="flex items-center justify-center gap-4">
           <span className="text-base font-semibold">Get in touch</span>

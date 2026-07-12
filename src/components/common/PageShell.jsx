@@ -3,9 +3,9 @@ import { NavBar } from "@/components/NavBar";
 
 export function PageShell({ children }) {
   return (
-    <div className="min-h-screen bg-[#f8f7f4] text-neutral-900">
+    <div className="flex min-h-screen flex-col bg-[#f8f7f4] text-neutral-900">
       <NavBar />
-      {children}
+      <div className="flex-1">{children}</div>
       <Footer />
     </div>
   );

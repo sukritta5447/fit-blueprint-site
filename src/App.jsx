@@ -3,13 +3,17 @@ import { Toaster } from "sonner";
 
 import { ArticlePage } from "./pages/ArticlePage";
 import { LandingPage } from "./pages/LandingPage";
+import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { SignupPage } from "./pages/SignupPage";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route path="/article/:id" element={<ArticlePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
