@@ -1,6 +1,8 @@
 import { Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 import { categories } from '../data/articles'
+import { articleSectionClasses, searchFieldStyles } from '@/styles/articleSection.styles'
 import { Input } from './ui/input'
 import {
   Select,
@@ -10,34 +12,12 @@ import {
   SelectValue,
 } from './ui/select'
 
-const articleSectionClasses = {
-  title: 'text-2xl font-semibold tracking-tight text-neutral-900 md:text-2xl',
-  panel:
-    'mt-6 -mx-5 rounded-none bg-[#eeece9] px-5 py-5 md:mx-0 md:mt-6 md:rounded-xl md:p-3',
-}
-
-const searchFieldStyles = {
-  desktop: {
-    label: 'relative block w-80',
-    input:
-      'h-10 rounded-md border-stone-200 bg-white pl-4 pr-10 text-sm shadow-none placeholder:text-neutral-500',
-    icon: 'absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-500',
-    strokeWidth: 1.8,
-  },
-  mobile: {
-    label: 'relative block',
-    input:
-      'h-12 rounded-xl border-stone-300 bg-white pl-5 pr-12 text-sm shadow-none placeholder:text-neutral-500',
-    icon: 'absolute right-4 top-1/2 size-5 -translate-y-1/2 text-neutral-500',
-    strokeWidth: 1.8,
-  },
-}
-
-function SearchField({ variant = 'desktop', value, onChange }) {
+function SearchField({ variant = 'desktop', value, onChange, results = [] }) {
   const styles = searchFieldStyles[variant]
+  const shouldShowResults = value.trim() && results.length > 0
 
   return (
-    <label className={styles.label}>
+    <div className={styles.wrapper}>
       <span className="sr-only">Search articles</span>
       <Input
         type="search"
@@ -51,17 +31,28 @@ function SearchField({ variant = 'desktop', value, onChange }) {
         className={styles.icon}
         strokeWidth={styles.strokeWidth}
       />
-    </label>
+
+      {shouldShowResults && (
+        <div className={styles.results}>
+          {results.slice(0, 6).map((article) => (
+            <Link
+              key={article.id}
+              to={`/article/${article.id}`}
+              className={styles.resultLink}
+            >
+              {article.title}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
 function CategoryTab({ category, isActive, onSelectCategory }) {
-  let stateClasses =
-    'text-neutral-500 hover:bg-white/70 hover:text-neutral-900'
-
-  if (isActive) {
-    stateClasses = 'bg-neutral-300 text-neutral-950 shadow-sm disabled:opacity-100'
-  }
+  const stateClasses = isActive
+    ? 'bg-neutral-300 text-neutral-950 shadow-sm disabled:opacity-100'
+    : 'text-neutral-500 hover:bg-white/70 hover:text-neutral-900'
 
   return (
     <button
@@ -115,11 +106,12 @@ function MobileCategoryFilter({ selectedCategory, onSelectCategory }) {
   )
 }
 
-function ArticleSection({
+export function ArticleSection({
   selectedCategory,
   onSelectCategory,
   searchKeyword,
   onSearchKeywordChange,
+  searchResults = [],
 }) {
   return (
     <section className="pt-6">
@@ -134,6 +126,7 @@ function ArticleSection({
           <SearchField
             value={searchKeyword}
             onChange={onSearchKeywordChange}
+            results={searchResults}
           />
         </div>
 
@@ -142,6 +135,7 @@ function ArticleSection({
             variant="mobile"
             value={searchKeyword}
             onChange={onSearchKeywordChange}
+            results={searchResults}
           />
           <MobileCategoryFilter
             selectedCategory={selectedCategory}
@@ -152,5 +146,3 @@ function ArticleSection({
     </section>
   )
 }
-
-export default ArticleSection

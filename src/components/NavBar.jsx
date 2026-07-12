@@ -1,5 +1,6 @@
 import { Menu } from 'lucide-react'
 
+import { navClasses } from '@/styles/navBar.styles'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,13 +22,6 @@ const navLinks = [
       'bg-neutral-950 text-white hover:bg-neutral-800',
   },
 ]
-
-const navClasses = {
-  linkBase:
-    'rounded-full px-5 py-2 text-sm font-medium transition',
-  mobileLinkBase:
-    'flex h-14 w-full items-center justify-center rounded-full text-base font-medium transition',
-}
 
 function NavActionLink({ href, label, className }) {
   return (
