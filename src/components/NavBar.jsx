@@ -1,21 +1,43 @@
 import { useEffect, useState } from "react";
 import {
-  Bell,
   ChevronDown,
+  ExternalLink,
   LogOut,
   Menu,
   RotateCcw,
   User,
   X,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
+import {
+  CURRENT_ADMIN_UPDATED_EVENT,
+  clearCurrentAdmin,
+  getCurrentAdmin,
+} from "@/services/adminAuthStorage";
+import {
+  ADMIN_CONTENT_UPDATED_EVENT,
+  getNotificationViewPath,
+  getStoredNotifications,
+  getUnreadNotificationCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from "@/services/adminContentStorage";
+import {
+  getMemberNotificationViewPath,
+  getStoredMemberNotifications,
+  getUnreadMemberNotificationCount,
+  markMemberNotificationAsRead,
+  markAllMemberNotificationsAsRead,
+  MEMBER_NOTIFICATIONS_UPDATED_EVENT,
+} from "@/services/memberNotificationsStorage";
 import {
   CURRENT_USER_UPDATED_EVENT,
   clearCurrentUser,
   getCurrentUser,
 } from "@/services/signupUsersStorage";
 import { navClasses } from "@/styles/navBar.styles";
+import { NavNotificationDropdown } from "./NavNotificationDropdown";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -148,17 +170,28 @@ function LogoutConfirmDialog({ onCancel, onConfirm }) {
   );
 }
 
-function AuthenticatedNav({ user, onLogout }) {
+function AuthenticatedNav({
+  user,
+  isAdmin,
+  notifications,
+  unreadCount,
+  onNotificationClick,
+  onMarkAllNotificationsAsRead,
+  onLogout,
+}) {
+  const profilePath = isAdmin ? "/admin/profile" : "/member-management";
+  const resetPasswordPath = isAdmin
+    ? "/admin/reset-password"
+    : "/reset-password";
+
   return (
     <div className="flex items-center gap-3">
-      <button
-        type="button"
-        className="relative grid size-10 place-items-center rounded-full border border-stone-200 bg-white text-neutral-700 shadow-sm transition hover:bg-stone-50"
-        aria-label="Notifications"
-      >
-        <Bell size={18} strokeWidth={1.8} />
-        <span className="absolute right-2 top-2 size-2 rounded-full bg-red-500" />
-      </button>
+      <NavNotificationDropdown
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onNotificationClick={onNotificationClick}
+        onMarkAllAsRead={onMarkAllNotificationsAsRead}
+      />
 
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-2 rounded-full outline-none transition hover:opacity-80">
@@ -174,12 +207,19 @@ function AuthenticatedNav({ user, onLogout }) {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="min-w-56 space-y-1 p-3">
-          <UserMenuItem icon={User} label="Profile" to="/member-management" />
+          <UserMenuItem icon={User} label="Profile" to={profilePath} />
           <UserMenuItem
             icon={RotateCcw}
             label="Reset password"
-            to="/reset-password"
+            to={resetPasswordPath}
           />
+          {isAdmin && (
+            <UserMenuItem
+              icon={ExternalLink}
+              label="Admin panel"
+              to="/admin/articles"
+            />
+          )}
           <UserMenuItem icon={LogOut} label="Log out" onClick={onLogout} />
         </DropdownMenuContent>
       </DropdownMenu>
@@ -189,22 +229,41 @@ function AuthenticatedNav({ user, onLogout }) {
 
 export function NavBar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [, refreshAuthState] = useState(0);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const currentUser = getCurrentUser();
+  const currentAdmin = getCurrentAdmin();
+  const activeAccount = currentUser || currentAdmin;
+  const isAdmin = Boolean(currentAdmin);
+  const notifications = isAdmin
+    ? getStoredNotifications()
+    : getStoredMemberNotifications();
+  const unreadCount = isAdmin
+    ? getUnreadNotificationCount()
+    : getUnreadMemberNotificationCount();
   const returnPath = `${location.pathname}${location.search}`;
 
   useEffect(() => {
-    function handleCurrentUserUpdate() {
+    function handleAuthUpdate() {
       refreshAuthState((current) => current + 1);
     }
 
-    window.addEventListener(CURRENT_USER_UPDATED_EVENT, handleCurrentUserUpdate);
+    window.addEventListener(CURRENT_USER_UPDATED_EVENT, handleAuthUpdate);
+    window.addEventListener(CURRENT_ADMIN_UPDATED_EVENT, handleAuthUpdate);
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, handleAuthUpdate);
+    window.addEventListener(
+      MEMBER_NOTIFICATIONS_UPDATED_EVENT,
+      handleAuthUpdate,
+    );
 
     return () => {
+      window.removeEventListener(CURRENT_USER_UPDATED_EVENT, handleAuthUpdate);
+      window.removeEventListener(CURRENT_ADMIN_UPDATED_EVENT, handleAuthUpdate);
+      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, handleAuthUpdate);
       window.removeEventListener(
-        CURRENT_USER_UPDATED_EVENT,
-        handleCurrentUserUpdate,
+        MEMBER_NOTIFICATIONS_UPDATED_EVENT,
+        handleAuthUpdate,
       );
     };
   }, []);
@@ -225,7 +284,36 @@ export function NavBar() {
 
   function handleConfirmLogout() {
     clearCurrentUser();
+    clearCurrentAdmin();
     setIsLogoutConfirmOpen(false);
+    refreshAuthState((current) => current + 1);
+  }
+
+  function handleNotificationClick(notification) {
+    if (isAdmin) {
+      markNotificationAsRead(notification.id);
+    } else {
+      markMemberNotificationAsRead(notification.id);
+    }
+
+    refreshAuthState((current) => current + 1);
+
+    const viewPath = isAdmin
+      ? getNotificationViewPath(notification)
+      : getMemberNotificationViewPath(notification);
+
+    if (viewPath) {
+      navigate(viewPath);
+    }
+  }
+
+  function handleMarkAllNotificationsAsRead() {
+    if (isAdmin) {
+      markAllNotificationsAsRead();
+    } else {
+      markAllMemberNotificationsAsRead();
+    }
+
     refreshAuthState((current) => current + 1);
   }
 
@@ -240,9 +328,14 @@ export function NavBar() {
             JB Fit Blueprint
           </Link>
 
-          {currentUser ? (
+          {activeAccount ? (
             <AuthenticatedNav
-              user={currentUser}
+              user={activeAccount}
+              isAdmin={isAdmin}
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onNotificationClick={handleNotificationClick}
+              onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
               onLogout={handleRequestLogout}
             />
           ) : (

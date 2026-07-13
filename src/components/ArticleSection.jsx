@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { categories } from '../data/articles'
+import { getPublicCategories } from '@/services/articlesApi'
+import { ADMIN_CONTENT_UPDATED_EVENT } from '@/services/adminContentStorage'
 import { articleSectionClasses, searchFieldStyles } from '@/styles/articleSection.styles'
 import { Input } from './ui/input'
 import {
@@ -66,7 +68,7 @@ function CategoryTab({ category, isActive, onSelectCategory }) {
   )
 }
 
-function CategoryTabs({ selectedCategory, onSelectCategory }) {
+function CategoryTabs({ categories, selectedCategory, onSelectCategory }) {
   return (
     <div className="flex items-center gap-3">
       {categories.map((category) => (
@@ -81,7 +83,7 @@ function CategoryTabs({ selectedCategory, onSelectCategory }) {
   )
 }
 
-function MobileCategoryFilter({ selectedCategory, onSelectCategory }) {
+function MobileCategoryFilter({ categories, selectedCategory, onSelectCategory }) {
   return (
     <div>
       <p className="mb-2 text-sm font-medium text-neutral-500">
@@ -113,6 +115,20 @@ export function ArticleSection({
   onSearchKeywordChange,
   searchResults = [],
 }) {
+  const [categories, setCategories] = useState(() => getPublicCategories())
+
+  useEffect(() => {
+    function syncCategories() {
+      setCategories(getPublicCategories())
+    }
+
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories)
+
+    return () => {
+      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories)
+    }
+  }, [])
+
   return (
     <section className="pt-6">
       <h2 className={articleSectionClasses.title}>Latest articles</h2>
@@ -120,6 +136,7 @@ export function ArticleSection({
       <div className={articleSectionClasses.panel}>
         <div className="hidden items-center justify-between gap-6 md:flex">
           <CategoryTabs
+            categories={categories}
             selectedCategory={selectedCategory}
             onSelectCategory={onSelectCategory}
           />
@@ -138,6 +155,7 @@ export function ArticleSection({
             results={searchResults}
           />
           <MobileCategoryFilter
+            categories={categories}
             selectedCategory={selectedCategory}
             onSelectCategory={onSelectCategory}
           />

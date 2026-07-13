@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { getPosts } from "@/services/articlesApi";
+import { getAllPostsForSearch, getPosts } from "@/services/articlesApi";
+import { ADMIN_CONTENT_UPDATED_EVENT } from "@/services/adminContentStorage";
 
 export function usePosts() {
   const [selectedCategory, setSelectedCategory] = useState("Highlight");
@@ -9,16 +10,32 @@ export function usePosts() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    function handleContentUpdated() {
+      setRefreshKey((currentKey) => currentKey + 1);
+    }
+
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, handleContentUpdated);
+
+    return () => {
+      window.removeEventListener(
+        ADMIN_CONTENT_UPDATED_EVENT,
+        handleContentUpdated,
+      );
+    };
+  }, []);
 
   useEffect(() => {
     let shouldUpdate = true;
 
     async function loadAllPosts() {
       try {
-        const data = await getPosts({ limit: 100 });
+        const loadedPosts = await getAllPostsForSearch();
 
         if (shouldUpdate) {
-          setAllPosts(data.posts);
+          setAllPosts(loadedPosts);
         }
       } catch (error) {
         console.error("Error fetching all posts:", error);
@@ -30,7 +47,7 @@ export function usePosts() {
     return () => {
       shouldUpdate = false;
     };
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     let shouldUpdate = true;
@@ -51,7 +68,7 @@ export function usePosts() {
           if (page === 1) return data.posts;
 
           const postMap = new Map(
-            [...prevPosts, ...data.posts].map((post) => [post.id, post])
+            [...prevPosts, ...data.posts].map((post) => [post.id, post]),
           );
 
           return Array.from(postMap.values());
@@ -71,7 +88,7 @@ export function usePosts() {
     return () => {
       shouldUpdate = false;
     };
-  }, [selectedCategory, page]);
+  }, [selectedCategory, page, refreshKey]);
 
   function handleSelectCategory(category) {
     setSelectedCategory(category);
