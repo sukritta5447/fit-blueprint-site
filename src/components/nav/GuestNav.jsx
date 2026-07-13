@@ -1,0 +1,79 @@
+import { Menu } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import { navClasses } from "@/styles/navBar.styles";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const navLinks = [
+  {
+    label: "Log in",
+    to: "/login",
+    className: "border border-neutral-300 text-neutral-900 hover:bg-white",
+  },
+  {
+    label: "Sign up",
+    to: "/signup",
+    className: "bg-neutral-950 text-white hover:bg-neutral-800",
+  },
+];
+
+function NavActionLink({ to, label, className, state }) {
+  return (
+    <Link
+      to={to}
+      state={state}
+      className={`${navClasses.linkBase} ${className}`}
+    >
+      {label}
+    </Link>
+  );
+}
+
+export function GuestNav({ getLinkState }) {
+  return (
+    <>
+      <nav
+        className="hidden items-center gap-3 md:flex"
+        aria-label="Main navigation"
+      >
+        {navLinks.map((link) => (
+          <NavActionLink
+            key={link.to}
+            {...link}
+            state={getLinkState(link.to)}
+          />
+        ))}
+      </nav>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className="grid size-10 place-items-center text-neutral-950 outline-none md:hidden"
+          aria-label="Open navigation menu"
+        >
+          <Menu size={28} strokeWidth={2} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="w-[calc(100vw-2.5rem)] space-y-6 p-5"
+        >
+          {navLinks.map((link) => (
+            <DropdownMenuItem key={link.to} asChild>
+              <Link
+                to={link.to}
+                state={getLinkState(link.to)}
+                className={`${navClasses.mobileLinkBase} ${link.className}`}
+              >
+                {link.label}
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
+  );
+}

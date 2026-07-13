@@ -1,29 +1,23 @@
-import { useState, useEffect } from "react";
-import { getPosts } from "../services/articlesApi";
-
-import ArticleSection from "../components/ArticleSection";
-import { ArticleGrid } from "../components/ArticleGrid";
-import { Container } from "../components/common/Container";
-import { Footer } from "../components/Footer";
-import { HeroSection } from "../components/HeroSection";
-import { NavBar } from "../components/NavBar";
+import { usePosts } from "@/hooks/usePosts";
+import { ArticleGrid } from "@/components/ArticleGrid";
+import { ArticleSection } from "@/components/ArticleSection";
+import { Container } from "@/components/common/Container";
+import { Footer } from "@/components/Footer";
+import { HeroSection } from "@/components/HeroSection";
+import { NavBar } from "@/components/NavBar";
 
 export function LandingPage() {
-  const [selectedCategory, setSelectedCategory] = useState("Highlight");
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [posts, setPosts] = useState([]);
-
-  useEffect(() => {
-    async function loadPosts() {
-      const data = await getPosts(selectedCategory);
-      setPosts(data);
-    }
-    loadPosts();
-  }, [selectedCategory]);
-
-  const visiblePosts = posts.filter((post) =>
-    post.title.toLowerCase().includes(searchKeyword.toLowerCase())
-  );
+  const {
+    selectedCategory,
+    searchKeyword,
+    setSearchKeyword,
+    visiblePosts,
+    searchResults,
+    isLoading,
+    hasMore,
+    handleSelectCategory,
+    handleLoadMore,
+  } = usePosts();
 
   return (
     <div className="min-h-screen bg-[#f8f7f4] text-neutral-900">
@@ -33,11 +27,18 @@ export function LandingPage() {
           <HeroSection />
           <ArticleSection
             selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
+            onSelectCategory={handleSelectCategory}
             searchKeyword={searchKeyword}
             onSearchKeywordChange={setSearchKeyword}
+            searchResults={searchResults}
           />
-          <ArticleGrid articles={visiblePosts} />
+          <ArticleGrid
+            articles={visiblePosts}
+            hasMore={hasMore}
+            isLoading={isLoading}
+            onLoadMore={handleLoadMore}
+            searchKeyword={searchKeyword}
+          />
         </Container>
       </main>
       <Footer />

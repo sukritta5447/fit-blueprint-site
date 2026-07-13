@@ -1,83 +1,58 @@
-import { Menu } from 'lucide-react'
+import { Link } from "react-router-dom";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu'
-
-const navLinks = [
-  {
-    label: 'Log in',
-    href: '#login',
-    className:
-      'border border-neutral-300 text-neutral-900 hover:bg-white',
-  },
-  {
-    label: 'Sign up',
-    href: '#signup',
-    className:
-      'bg-neutral-950 text-white hover:bg-neutral-800',
-  },
-]
-
-const navClasses = {
-  linkBase:
-    'rounded-full px-5 py-2 text-sm font-medium transition',
-  mobileLinkBase:
-    'flex h-14 w-full items-center justify-center rounded-full text-base font-medium transition',
-}
-
-function NavActionLink({ href, label, className }) {
-  return (
-    <a
-      href={href}
-      className={`${navClasses.linkBase} ${className}`}
-    >
-      {label}
-    </a>
-  )
-}
+import { AuthenticatedNav } from "@/components/nav/AuthenticatedNav";
+import { GuestNav } from "@/components/nav/GuestNav";
+import { LogoutConfirmDialog } from "@/components/nav/LogoutConfirmDialog";
+import { useNavBarState } from "@/hooks/useNavBarState";
 
 export function NavBar() {
+  const {
+    activeAccount,
+    getLinkState,
+    handleCancelLogout,
+    handleConfirmLogout,
+    handleMarkAllNotificationsAsRead,
+    handleNotificationClick,
+    handleRequestLogout,
+    isAdmin,
+    isLogoutConfirmOpen,
+    notifications,
+    unreadCount,
+  } = useNavBarState();
+
   return (
-    <header className="border-b border-stone-200 bg-[#f8f7f4]/90 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 md:px-8">
-        <a className="text-xl font-medium tracking-tight text-neutral-950" href="/">
-          JB Fit Blueprint
-        </a>
-
-        <nav className="hidden items-center gap-3 md:flex" aria-label="Main navigation">
-          {navLinks.map((link) => (
-            <NavActionLink key={link.href} {...link} />
-          ))}
-        </nav>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            className="grid size-10 place-items-center text-neutral-950 outline-none md:hidden"
-            aria-label="Open navigation menu"
+    <>
+      <header className="border-b border-stone-200 bg-[#f8f7f4]/90 backdrop-blur">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 md:px-8">
+          <Link
+            className="text-xl font-medium tracking-tight text-neutral-950"
+            to="/"
           >
-            <Menu size={28} strokeWidth={2} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="w-[calc(100vw-2.5rem)] space-y-6 p-5"
-          >
-            {navLinks.map((link) => (
-              <DropdownMenuItem key={link.href} asChild>
-                <a
-                  href={link.href}
-                  className={`${navClasses.mobileLinkBase} ${link.className}`}
-                >
-                  {link.label}
-                </a>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </header>
-  )
+            JB Fit Blueprint
+          </Link>
+
+          {activeAccount ? (
+            <AuthenticatedNav
+              user={activeAccount}
+              isAdmin={isAdmin}
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onNotificationClick={handleNotificationClick}
+              onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
+              onLogout={handleRequestLogout}
+            />
+          ) : (
+            <GuestNav getLinkState={getLinkState} />
+          )}
+        </div>
+      </header>
+
+      {isLogoutConfirmOpen && (
+        <LogoutConfirmDialog
+          onCancel={handleCancelLogout}
+          onConfirm={handleConfirmLogout}
+        />
+      )}
+    </>
+  );
 }

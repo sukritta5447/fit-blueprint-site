@@ -1,3 +1,21 @@
 {
-    "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]",
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "dev": false,
+      "feat/*": false,
+      "refactor/*": false,
+      "fix/*": false,
+      "chore/*": false,
+      "test/*": false,
+      "docs/*": false,
+      "style/*": false,
+      "perf/*": false,
+      "build/*": false,
+      "ci/*": false,
+      "other/*": false
+    }
   }
+}
