@@ -4,7 +4,9 @@ import { Toaster } from "sonner";
 import { ArticlePage } from "./pages/ArticlePage";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
+import { MemberProfilePage } from "./pages/MemberProfilePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SignupPage } from "./pages/SignupPage";
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/article/:id" element={<ArticlePage />} />
+        <Route path="/member-management" element={<MemberProfilePage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Toaster
