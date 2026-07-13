@@ -7,7 +7,6 @@ import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
 import { initialSignupFormValues } from "@/data/signupForm";
 import {
-  defaultUserAvatar,
   getStoredUsers,
   saveStoredUsers,
   setCurrentUser,
@@ -90,7 +89,7 @@ export function SignupPage() {
       username: formValues.username.trim(),
       email: formValues.email.trim().toLowerCase(),
       password: formValues.password,
-      image: defaultUserAvatar,
+      image: "",
       createdAt: new Date().toISOString(),
     };
 

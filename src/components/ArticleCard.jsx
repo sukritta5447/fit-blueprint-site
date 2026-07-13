@@ -5,14 +5,14 @@ import { CategoryBadge } from "./ui/CategoryBadge";
 function ArticleMeta({ author, date, isoDate }) {
   const metaItems = [
     {
-      key: 'author',
+      key: "author",
       content: author,
     },
     {
-      key: 'date',
+      key: "date",
       content: <time dateTime={isoDate}>{date}</time>,
     },
-  ]
+  ];
 
   return (
     <div className={articleCardClasses.meta}>
@@ -27,7 +27,7 @@ function ArticleMeta({ author, date, isoDate }) {
         </span>
       ))}
     </div>
-  )
+  );
 }
 
 export function ArticleCard({
@@ -44,11 +44,7 @@ export function ArticleCard({
     <article className="group">
       <a href={`/article/${id}`} className="block">
         <div className="overflow-hidden rounded-xl bg-stone-200">
-          <img
-            src={image}
-            alt=""
-            className={articleCardClasses.image}
-          />
+          <img src={image} alt="" className={articleCardClasses.image} />
         </div>
 
         <div className="mt-4">
@@ -57,8 +53,9 @@ export function ArticleCard({
           <p className={articleCardClasses.excerpt}>{excerpt}</p>
         </div>
 
+        {/* isoDate คือ วันที่ของบทความแบบมาตรฐาน ISO 8601 เอาไว้ให้ browser,screen reader อ่านได้*/}
         <ArticleMeta author={author} date={date} isoDate={isoDate} />
       </a>
     </article>
-  )
+  );
 }
