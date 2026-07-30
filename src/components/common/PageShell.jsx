@@ -1,5 +1,5 @@
 import { Footer } from "@/components/Footer";
-import { NavBar } from "@/components/NavBar";
+import { NavBar } from "@/components/nav/NavBar";
 
 export function PageShell({ children }) {
   return (

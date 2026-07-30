@@ -10,7 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 function NotificationAvatar({ notification }) {
   if (notification.userImage) {

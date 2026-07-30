@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { ResetPasswordFields } from "@/components/common/ResetPasswordFields";
-import { ResetPasswordConfirmDialog } from "@/components/common/ResetPasswordConfirmDialog";
+import { ResetPasswordConfirmDialog } from "@/components/auth/ResetPasswordConfirmDialog";
+import { ResetPasswordFields } from "@/components/auth/ResetPasswordFields";
 import { useResetPasswordForm } from "@/hooks/useResetPasswordForm";
 import {
   getCurrentAdmin,

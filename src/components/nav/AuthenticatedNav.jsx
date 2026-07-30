@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { NavNotificationDropdown } from "@/components/NavNotificationDropdown";
+import { NavNotificationDropdown } from "@/components/nav/NavNotificationDropdown";
 import {
   DropdownMenu,
   DropdownMenuContent,

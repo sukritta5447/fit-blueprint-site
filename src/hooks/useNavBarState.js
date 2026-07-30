@@ -7,13 +7,13 @@ import {
   getCurrentAdmin,
 } from "@/services/adminAuthStorage";
 import {
-  ADMIN_CONTENT_UPDATED_EVENT,
   getNotificationViewPath,
   getStoredNotifications,
   getUnreadNotificationCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-} from "@/services/adminContentStorage";
+} from "@/services/adminNotificationsStorage";
+import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 import {
   MEMBER_NOTIFICATIONS_UPDATED_EVENT,
   getMemberNotificationViewPath,
@@ -26,7 +26,7 @@ import {
   CURRENT_USER_UPDATED_EVENT,
   clearCurrentUser,
   getCurrentUser,
-} from "@/services/signupUsersStorage";
+} from "@/services/memberAuthStorage";
 
 export function useNavBarState() {
   const location = useLocation();
@@ -52,7 +52,7 @@ export function useNavBarState() {
   useEffect(() => {
     window.addEventListener(CURRENT_USER_UPDATED_EVENT, refreshNavState);
     window.addEventListener(CURRENT_ADMIN_UPDATED_EVENT, refreshNavState);
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, refreshNavState);
+    window.addEventListener(CONTENT_UPDATED_EVENT, refreshNavState);
     window.addEventListener(
       MEMBER_NOTIFICATIONS_UPDATED_EVENT,
       refreshNavState,
@@ -61,7 +61,7 @@ export function useNavBarState() {
     return () => {
       window.removeEventListener(CURRENT_USER_UPDATED_EVENT, refreshNavState);
       window.removeEventListener(CURRENT_ADMIN_UPDATED_EVENT, refreshNavState);
-      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, refreshNavState);
+      window.removeEventListener(CONTENT_UPDATED_EVENT, refreshNavState);
       window.removeEventListener(
         MEMBER_NOTIFICATIONS_UPDATED_EVENT,
         refreshNavState,

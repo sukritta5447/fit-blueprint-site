@@ -17,9 +17,9 @@ import {
   getCurrentAdmin,
 } from "@/services/adminAuthStorage";
 import {
-  ADMIN_CONTENT_UPDATED_EVENT,
   getUnreadNotificationCount,
-} from "@/services/adminContentStorage";
+} from "@/services/adminNotificationsStorage";
+import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 import { adminLayoutClasses } from "@/styles/adminLayout.styles";
 import { cn } from "@/utils/utils";
 
@@ -135,11 +135,11 @@ export function AdminLayout() {
     }
 
     window.addEventListener(CURRENT_ADMIN_UPDATED_EVENT, syncAdminState);
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncUnreadCount);
+    window.addEventListener(CONTENT_UPDATED_EVENT, syncUnreadCount);
 
     return () => {
       window.removeEventListener(CURRENT_ADMIN_UPDATED_EVENT, syncAdminState);
-      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncUnreadCount);
+      window.removeEventListener(CONTENT_UPDATED_EVENT, syncUnreadCount);
     };
   }, []);
 
