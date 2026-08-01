@@ -4,13 +4,13 @@ import { RotateCcw, User } from "lucide-react";
 
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
-import { ResetPasswordFields } from "@/components/common/ResetPasswordFields";
-import { ResetPasswordConfirmDialog } from "@/components/common/ResetPasswordConfirmDialog";
+import { ResetPasswordConfirmDialog } from "@/components/auth/ResetPasswordConfirmDialog";
+import { ResetPasswordFields } from "@/components/auth/ResetPasswordFields";
 import { useResetPasswordForm } from "@/hooks/useResetPasswordForm";
 import {
   getCurrentUser,
   updateCurrentUserPassword,
-} from "@/services/signupUsersStorage";
+} from "@/services/memberAuthStorage";
 
 const dialogCancelButtonClassName =
   "min-w-28 rounded-full border border-neutral-400 bg-white px-7 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-stone-50";

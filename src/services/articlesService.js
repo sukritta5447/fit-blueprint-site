@@ -1,18 +1,17 @@
 import axios from "axios";
 
-import { categories as fallbackCategories } from "@/data/articles";
 import {
   filterStoredArticles,
   getStoredArticleById,
   getStoredArticles,
   hasCustomStoredArticles,
   normalizeArticle,
-} from "@/services/adminContentStorage";
+} from "@/services/articleStorage";
+import { getPublicCategories } from "@/services/categoryStorage";
 
 const API_BASE_URL = "https://blog-post-project-api.vercel.app";
-const CATEGORIES_STORAGE_KEY = "jb-fit-blueprint-admin-categories";
 
-function formatPostDate(isoDate) {
+function formatArticleDate(isoDate) {
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "long",
@@ -43,18 +42,14 @@ function getSectionsFromContent(content) {
     });
 }
 
-function mapPost(post) {
+function mapApiArticle(apiArticle) {
   return {
-    ...post,
-    excerpt: post.description,
-    isoDate: post.date,
-    date: formatPostDate(post.date),
-    sections: getSectionsFromContent(post.content),
+    ...apiArticle,
+    excerpt: apiArticle.description,
+    isoDate: apiArticle.date,
+    date: formatArticleDate(apiArticle.date),
+    sections: getSectionsFromContent(apiArticle.content),
   };
-}
-
-function shouldUseLocalArticles() {
-  return hasCustomStoredArticles();
 }
 
 function mapLocalArticle(article) {
@@ -68,31 +63,19 @@ function mapLocalArticle(article) {
   };
 }
 
-export function getPublicCategories() {
-  try {
-    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+export { getPublicCategories };
 
-    if (storedCategories) {
-      return JSON.parse(storedCategories);
-    }
-  } catch (error) {
-    console.error("Error reading public categories:", error);
-  }
-
-  return fallbackCategories;
-}
-
-export async function getPosts({
+export async function getArticles({
   category = "Highlight",
   page = 1,
   limit = 6,
 } = {}) {
-  if (shouldUseLocalArticles()) {
+  if (hasCustomStoredArticles()) {
     const data = filterStoredArticles({ category, page, limit });
 
     return {
       ...data,
-      posts: data.posts.map(mapLocalArticle),
+      articles: data.articles.map(mapLocalArticle),
     };
   }
 
@@ -108,13 +91,15 @@ export async function getPosts({
   });
 
   return {
-    ...response.data,
-    posts: response.data.posts.map(mapPost),
+    articles: response.data.posts.map(mapApiArticle),
+    totalArticles: response.data.totalPosts,
+    totalPages: response.data.totalPages,
+    currentPage: response.data.currentPage,
   };
 }
 
-export async function getPostById(id) {
-  if (shouldUseLocalArticles()) {
+export async function getArticleById(id) {
+  if (hasCustomStoredArticles()) {
     const article = getStoredArticleById(id);
 
     if (!article) {
@@ -126,14 +111,14 @@ export async function getPostById(id) {
 
   const response = await axios.get(`${API_BASE_URL}/posts/${id}`);
 
-  return mapPost(response.data);
+  return mapApiArticle(response.data);
 }
 
-export async function getAllPostsForSearch() {
-  if (shouldUseLocalArticles()) {
+export async function getAllArticlesForSearch() {
+  if (hasCustomStoredArticles()) {
     return getStoredArticles().map(mapLocalArticle);
   }
 
-  const data = await getPosts({ limit: 100 });
-  return data.posts;
+  const data = await getArticles({ limit: 100 });
+  return data.articles;
 }

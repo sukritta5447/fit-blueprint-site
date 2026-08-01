@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   getCurrentUser,
   updateCurrentUserProfile,
-} from "@/services/signupUsersStorage";
+} from "@/services/memberAuthStorage";
 
 function ProfileAvatar({ image, name, className = "size-24" }) {
   if (image) {

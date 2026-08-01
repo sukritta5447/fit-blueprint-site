@@ -1,4 +1,4 @@
-import { getStoredUsers } from "@/services/signupUsersStorage";
+import { getStoredUsers } from "@/services/memberAuthStorage";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordPattern = /^[!-~]{6,}$/;

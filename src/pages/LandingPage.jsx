@@ -1,23 +1,23 @@
-import { usePosts } from "@/hooks/usePosts";
-import { ArticleGrid } from "@/components/ArticleGrid";
-import { ArticleSection } from "@/components/ArticleSection";
+import { ArticleGrid } from "@/components/articles/ArticleGrid";
+import { ArticleSection } from "@/components/articles/ArticleSection";
 import { Container } from "@/components/common/Container";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/HeroSection";
-import { NavBar } from "@/components/NavBar";
+import { NavBar } from "@/components/nav/NavBar";
+import { useArticles } from "@/hooks/useArticles";
 
 export function LandingPage() {
   const {
     selectedCategory,
     searchKeyword,
     setSearchKeyword,
-    visiblePosts,
+    visibleArticles,
     searchResults,
     isLoading,
     hasMore,
     handleSelectCategory,
     handleLoadMore,
-  } = usePosts();
+  } = useArticles();
 
   return (
     <div className="min-h-screen bg-[#f8f7f4] text-neutral-900">
@@ -33,7 +33,7 @@ export function LandingPage() {
             searchResults={searchResults}
           />
           <ArticleGrid
-            articles={visiblePosts}
+            articles={visibleArticles}
             hasMore={hasMore}
             isLoading={isLoading}
             onLoadMore={handleLoadMore}
