@@ -1,18 +1,27 @@
 export const authPageClasses = {
-  main: "py-14 md:py-20",
-  panel: "mx-auto w-full max-w-[560px] rounded-2xl border border-violet-500/20 bg-[#121020] px-7 py-10 md:px-12 md:py-12",
-  title: "text-center text-3xl font-semibold uppercase tracking-tight text-white md:text-4xl",
+  main: "py-10 md:py-14",
+  panel:
+    "mx-auto w-full max-w-[710px] rounded-2xl bg-[#eeece9] px-8 py-12 md:px-28 md:py-14",
+  title:
+    "text-center text-3xl font-semibold tracking-tight text-neutral-950 md:text-4xl",
   form: "mt-9 space-y-6",
   fieldGroup: "space-y-2",
-  label: "block text-xs font-medium uppercase tracking-wider text-slate-400",
-  input: "h-12 rounded-xl border-violet-500/20 bg-[#0b0913] px-4 text-sm text-white shadow-none placeholder:text-slate-600 focus-visible:ring-violet-500/30",
-  inputError: "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20",
-  errorText: "text-xs font-medium text-red-400",
+  label: "block text-sm font-medium text-neutral-500",
+  input:
+    "h-11 rounded-md border-stone-300 bg-white px-4 text-sm shadow-none placeholder:text-neutral-500 focus-visible:ring-neutral-300",
+  inputError:
+    "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-200",
+  errorText: "text-xs font-medium text-red-600",
   actionWrapper: "pt-2 text-center",
-  submitButton: "inline-flex min-w-32 justify-center rounded-xl bg-violet-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-violet-500",
+  submitButton:
+    "inline-flex min-w-28 justify-center rounded-full bg-neutral-950 px-8 py-3 text-sm font-medium text-white transition hover:bg-neutral-800",
   successAction: "mt-6",
-  footer: "mt-9 flex flex-wrap items-center justify-center gap-2 text-sm text-slate-500",
-  footerLink: "font-semibold text-violet-300 underline underline-offset-4 transition hover:text-violet-200",
-  successPanel: "mx-auto flex w-full max-w-[560px] flex-col items-center rounded-2xl border border-violet-500/20 bg-[#121020] px-8 py-12 text-center",
-  successIcon: "mb-8 grid size-16 place-items-center rounded-full bg-violet-600 text-white",
+  footer:
+    "mt-9 flex flex-wrap items-center justify-center gap-2 text-sm text-neutral-500",
+  footerLink:
+    "font-semibold text-neutral-950 underline underline-offset-4 transition hover:text-neutral-700",
+  successPanel:
+    "mx-auto flex w-full max-w-[710px] flex-col items-center rounded-2xl bg-[#eeece9] px-8 py-12 text-center md:px-28 md:py-14",
+  successIcon:
+    "mb-8 grid size-16 place-items-center rounded-full bg-emerald-500 text-white",
 };

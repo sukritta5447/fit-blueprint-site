@@ -1,21 +1,19 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useMemberAuth } from "@/hooks/useMemberAuth";
 import {
   CURRENT_ADMIN_UPDATED_EVENT,
   clearCurrentAdmin,
   getCurrentAdmin,
-  isAdminRole,
 } from "@/services/adminAuthStorage";
 import {
+  ADMIN_CONTENT_UPDATED_EVENT,
   getNotificationViewPath,
   getStoredNotifications,
   getUnreadNotificationCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-} from "@/services/adminNotificationsStorage";
-import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
+} from "@/services/adminContentStorage";
 import {
   MEMBER_NOTIFICATIONS_UPDATED_EVENT,
   getMemberNotificationViewPath,
@@ -24,17 +22,21 @@ import {
   markAllMemberNotificationsAsRead,
   markMemberNotificationAsRead,
 } from "@/services/memberNotificationsStorage";
-import { clearCurrentUser } from "@/services/memberAuthStorage";
+import {
+  CURRENT_USER_UPDATED_EVENT,
+  clearCurrentUser,
+  getCurrentUser,
+} from "@/services/signupUsersStorage";
 
 export function useNavBarState() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser } = useMemberAuth();
   const [, refreshAuthState] = useState(0);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const currentUser = getCurrentUser();
   const currentAdmin = getCurrentAdmin();
-  const isAdmin = isAdminRole(currentUser?.role);
-  const activeAccount = isAdmin ? currentAdmin || currentUser : currentUser;
+  const activeAccount = currentUser || currentAdmin;
+  const isAdmin = Boolean(currentAdmin);
   const notifications = isAdmin
     ? getStoredNotifications()
     : getStoredMemberNotifications();
@@ -48,16 +50,18 @@ export function useNavBarState() {
   }
 
   useEffect(() => {
+    window.addEventListener(CURRENT_USER_UPDATED_EVENT, refreshNavState);
     window.addEventListener(CURRENT_ADMIN_UPDATED_EVENT, refreshNavState);
-    window.addEventListener(CONTENT_UPDATED_EVENT, refreshNavState);
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, refreshNavState);
     window.addEventListener(
       MEMBER_NOTIFICATIONS_UPDATED_EVENT,
       refreshNavState,
     );
 
     return () => {
+      window.removeEventListener(CURRENT_USER_UPDATED_EVENT, refreshNavState);
       window.removeEventListener(CURRENT_ADMIN_UPDATED_EVENT, refreshNavState);
-      window.removeEventListener(CONTENT_UPDATED_EVENT, refreshNavState);
+      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, refreshNavState);
       window.removeEventListener(
         MEMBER_NOTIFICATIONS_UPDATED_EVENT,
         refreshNavState,
@@ -79,16 +83,11 @@ export function useNavBarState() {
     setIsLogoutConfirmOpen(false);
   }
 
-  async function handleConfirmLogout() {
-    try {
-      if (currentUser) {
-        await clearCurrentUser();
-      }
-      clearCurrentAdmin();
-    } finally {
-      setIsLogoutConfirmOpen(false);
-      refreshNavState();
-    }
+  function handleConfirmLogout() {
+    clearCurrentUser();
+    clearCurrentAdmin();
+    setIsLogoutConfirmOpen(false);
+    refreshNavState();
   }
 
   function handleNotificationClick(notification) {

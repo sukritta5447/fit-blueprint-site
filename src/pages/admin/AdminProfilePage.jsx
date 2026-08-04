@@ -110,7 +110,7 @@ export function AdminProfilePage() {
     return errors;
   }
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
 
     const errors = validateForm();
@@ -120,27 +120,21 @@ export function AdminProfilePage() {
       return;
     }
 
-    try {
-      const updatedAdmin = await updateCurrentAdminProfile({
-        name: formValues.name,
-        username: formValues.username,
-        email: formValues.email,
-        bio: formValues.bio,
-        image: formValues.image,
-      });
+    const updatedAdmin = updateCurrentAdminProfile({
+      name: formValues.name,
+      username: formValues.username,
+      email: formValues.email,
+      bio: formValues.bio,
+      image: formValues.image,
+    });
 
-      if (!updatedAdmin) return;
+    if (!updatedAdmin) return;
 
-      setCurrentAdminState(updatedAdmin);
-      setFormValues(getInitialFormValues(updatedAdmin));
-      toast.success("Saved profile", {
-        description: "Your profile has been successfully updated",
-      });
-    } catch (error) {
-      toast.error("Unable to save profile", {
-        description: error.message,
-      });
-    }
+    setCurrentAdminState(getCurrentAdmin());
+    setFormValues(getInitialFormValues(getCurrentAdminProfile()));
+    toast.success("Saved profile", {
+      description: "Your profile has been successfully updated",
+    });
   }
 
   if (!currentAdmin) return null;

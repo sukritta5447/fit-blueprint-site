@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 import { authPageClasses } from "@/styles/authPage.styles";
 import { cn } from "@/utils/utils";
 
-export function SignupSuccessPanel({ needsEmailConfirmation, onContinue }) {
+export function SignupSuccessPanel({ onContinue }) {
   return (
     <section
       className={authPageClasses.successPanel}
@@ -15,17 +15,12 @@ export function SignupSuccessPanel({ needsEmailConfirmation, onContinue }) {
       <h1 id="signup-success-title" className={authPageClasses.title}>
         Registration success
       </h1>
-      {needsEmailConfirmation && (
-        <p className={authPageClasses.footer}>
-          Check your email and confirm your account before logging in.
-        </p>
-      )}
       <button
         type="button"
         className={cn(authPageClasses.submitButton, authPageClasses.successAction)}
         onClick={onContinue}
       >
-        {needsEmailConfirmation ? "Go to login" : "Continue"}
+        Continue
       </button>
     </section>
   );

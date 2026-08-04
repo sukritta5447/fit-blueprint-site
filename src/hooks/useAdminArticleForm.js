@@ -7,9 +7,9 @@ import {
   createArticle,
   deleteArticle,
   getStoredArticleById,
+  getStoredCategories,
   updateArticle,
-} from "@/services/articleStorage";
-import { getStoredCategories } from "@/services/categoryStorage";
+} from "@/services/adminContentStorage";
 
 const INTRODUCTION_MAX_LENGTH = 120;
 

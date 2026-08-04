@@ -15,36 +15,36 @@
     "Segoe UI",
     sans-serif;
   font-weight: 500;
-  color: #f7f5ff;
-  background: #07060d;
+  color: #171717;
+  background: #f8f7f4;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --background: oklch(0.105 0.018 285);
-  --foreground: oklch(0.975 0.008 285);
-  --card: oklch(0.15 0.025 285);
-  --card-foreground: oklch(0.975 0.008 285);
-  --popover: oklch(0.16 0.027 285);
-  --popover-foreground: oklch(0.975 0.008 285);
-  --primary: oklch(0.62 0.255 292);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.2 0.035 285);
-  --secondary-foreground: oklch(0.95 0.01 285);
-  --muted: oklch(0.19 0.026 285);
-  --muted-foreground: oklch(0.67 0.035 285);
-  --accent: oklch(0.24 0.065 292);
-  --accent-foreground: oklch(0.96 0.02 292);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.28 0.055 290);
-  --input: oklch(0.25 0.04 288);
-  --ring: oklch(0.62 0.255 292);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.8rem;
+  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -68,9 +68,6 @@ body {
   min-height: 100vh;
   margin: 0;
   font-weight: 500;
-  background:
-    radial-gradient(circle at 65% 0%, rgb(124 58 237 / 12%), transparent 28rem),
-    #07060d;
 }
 
 h1,
@@ -87,32 +84,8 @@ img {
 }
 
 ::selection {
-  color: #ffffff;
-  background: #7c3aed;
-}
-
-a,
-button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-.forge-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: #a855f7;
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.forge-gradient-text {
-  color: #a855f7;
-}
-
-.forge-panel {
-  border: 1px solid rgb(139 92 246 / 22%);
-  background: rgb(18 15 32 / 88%);
+  color: #0a0a0a;
+  background: #d6f5e1;
 }
 
 [data-rich-colors="true"][data-sonner-toast][data-type="success"] {

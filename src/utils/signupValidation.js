@@ -1,8 +1,11 @@
+import { getStoredUsers } from "@/services/signupUsersStorage";
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordPattern = /^[!-~]{6,}$/;
 
 export function validateSignupForm(values) {
   const errors = {};
+  const users = getStoredUsers();
   const name = values.name.trim();
   const username = values.username.trim();
   const email = values.email.trim().toLowerCase();
@@ -15,12 +18,18 @@ export function validateSignupForm(values) {
 
   if (!username) {
     errors.username = "Please enter your username.";
+  } else if (
+    users.some((user) => user.username.toLowerCase() === username.toLowerCase())
+  ) {
+    errors.username = "This username is already taken.";
   }
 
   if (!email) {
     errors.email = "Please enter your email.";
   } else if (!emailPattern.test(email)) {
     errors.email = "Please enter a valid email address.";
+  } else if (users.some((user) => user.email.toLowerCase() === email)) {
+    errors.email = "This email is already used.";
   }
 
   if (!values.password) {

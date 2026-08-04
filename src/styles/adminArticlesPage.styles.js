@@ -1,27 +1,31 @@
 export const adminArticlesPageClasses = {
-  page: "mx-auto w-full max-w-[1040px]",
+  page: "mx-auto w-full max-w-[920px]",
   header: "mb-8 flex flex-wrap items-center justify-between gap-4",
-  title: "text-[28px] font-semibold uppercase leading-tight tracking-tight text-white",
-  createButton: "inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500",
-  toolbar: "mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between",
+  title: "text-[28px] font-semibold leading-tight tracking-tight text-neutral-950",
+  createButton:
+    "inline-flex items-center gap-2 rounded-full bg-neutral-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800",
+  toolbar:
+    "mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between",
   searchWrapper: "relative w-full lg:max-w-md",
-  searchInput: "h-11 rounded-xl border-violet-500/20 bg-[#0b0913] pl-4 pr-10 text-sm text-white shadow-none placeholder:text-slate-600",
+  searchInput:
+    "h-11 rounded-lg border-stone-300 bg-white pl-4 pr-10 text-sm shadow-none placeholder:text-neutral-400",
   filters: "flex flex-col gap-3 sm:flex-row sm:items-center",
-  filterSelect: "h-11 w-full rounded-xl border-violet-500/20 bg-[#0b0913] text-white sm:w-[160px]",
-  tableCard: "overflow-hidden rounded-2xl border border-violet-500/20 bg-[#121020]",
+  filterSelect: "h-11 w-full rounded-lg border-stone-300 bg-white sm:w-[160px]",
+  tableCard: "overflow-hidden rounded-xl border border-stone-200 bg-white",
   table: "w-full text-left text-sm",
-  tableHead: "border-b border-violet-500/20 text-slate-500",
+  tableHead: "border-b border-stone-200 bg-white text-neutral-500",
   tableHeadCell: "px-6 py-4 font-medium",
-  tableRowEven: "bg-transparent",
-  tableRowOdd: "bg-white/[0.02]",
+  tableRowEven: "bg-white",
+  tableRowOdd: "bg-[#faf9f8]",
   tableCell: "px-6 py-5",
-  titleCell: "max-w-[420px] truncate font-medium text-white",
-  categoryCell: "text-slate-400",
-  statusPublished: "inline-flex items-center gap-2 font-medium text-emerald-400",
-  statusDot: "size-2 rounded-full bg-emerald-400",
+  titleCell: "max-w-[420px] truncate font-medium text-neutral-900",
+  categoryCell: "text-neutral-700",
+  statusPublished: "inline-flex items-center gap-2 font-medium text-emerald-600",
+  statusDot: "size-2 rounded-full bg-emerald-500",
   actionsCell: "text-right",
-  iconButton: "inline-flex size-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-violet-500/10 hover:text-violet-300",
-  emptyState: "px-6 py-16 text-center text-sm text-slate-500",
+  iconButton:
+    "inline-flex size-9 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-stone-100 hover:text-neutral-700",
+  emptyState: "px-6 py-16 text-center text-sm text-neutral-500",
 };
 
 export const ARTICLE_STATUS_OPTIONS = [

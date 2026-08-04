@@ -10,7 +10,6 @@ export function SignupForm({
   onInputChange,
   onInputBlur,
   onSubmit,
-  isSubmitting,
 }) {
   return (
     <section className={authPageClasses.panel} aria-labelledby="signup-title">
@@ -31,12 +30,8 @@ export function SignupForm({
         ))}
 
         <div className={authPageClasses.actionWrapper}>
-          <button
-            type="submit"
-            className={authPageClasses.submitButton}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Creating account..." : "Sign up"}
+          <button type="submit" className={authPageClasses.submitButton}>
+            Sign up
           </button>
         </div>
       </form>
