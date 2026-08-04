@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getArticleById } from "@/services/articlesService";
-import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
+import { getPostById } from "@/services/articlesApi";
+import { ADMIN_CONTENT_UPDATED_EVENT } from "@/services/adminContentStorage";
 
 export function useArticle(id) {
   const [article, setArticle] = useState(null);
@@ -13,10 +13,13 @@ export function useArticle(id) {
       setRefreshKey((currentKey) => currentKey + 1);
     }
 
-    window.addEventListener(CONTENT_UPDATED_EVENT, handleContentUpdated);
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, handleContentUpdated);
 
     return () => {
-      window.removeEventListener(CONTENT_UPDATED_EVENT, handleContentUpdated);
+      window.removeEventListener(
+        ADMIN_CONTENT_UPDATED_EVENT,
+        handleContentUpdated,
+      );
     };
   }, []);
 
@@ -28,7 +31,7 @@ export function useArticle(id) {
       setHasError(false);
 
       try {
-        const data = await getArticleById(id);
+        const data = await getPostById(id);
 
         if (shouldUpdate) {
           setArticle(data);

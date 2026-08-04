@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
 import { Input } from "@/components/ui/input";
-import { getStoredUsers, setCurrentUser } from "@/services/memberAuthStorage";
+import { getStoredUsers, setCurrentUser } from "@/services/signupUsersStorage";
 import { authPageClasses } from "@/styles/authPage.styles";
 
 const initialLoginFormValues = {

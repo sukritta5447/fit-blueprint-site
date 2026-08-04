@@ -10,7 +10,7 @@ import {
   getStoredUsers,
   saveStoredUsers,
   setCurrentUser,
-} from "@/services/memberAuthStorage";
+} from "@/services/signupUsersStorage";
 import { authPageClasses } from "@/styles/authPage.styles";
 import { validateSignupForm } from "@/utils/signupValidation";
 

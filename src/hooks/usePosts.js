@@ -1,15 +1,12 @@
 import { useEffect, useState } from "react";
-import {
-  getAllArticlesForSearch,
-  getArticles,
-} from "@/services/articlesService";
-import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
+import { getAllPostsForSearch, getPosts } from "@/services/articlesApi";
+import { ADMIN_CONTENT_UPDATED_EVENT } from "@/services/adminContentStorage";
 
-export function useArticles() {
+export function usePosts() {
   const [selectedCategory, setSelectedCategory] = useState("Highlight");
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [articles, setArticles] = useState([]);
-  const [allArticles, setAllArticles] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,29 +17,32 @@ export function useArticles() {
       setRefreshKey((currentKey) => currentKey + 1);
     }
 
-    window.addEventListener(CONTENT_UPDATED_EVENT, handleContentUpdated);
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, handleContentUpdated);
 
     return () => {
-      window.removeEventListener(CONTENT_UPDATED_EVENT, handleContentUpdated);
+      window.removeEventListener(
+        ADMIN_CONTENT_UPDATED_EVENT,
+        handleContentUpdated,
+      );
     };
   }, []);
 
   useEffect(() => {
     let shouldUpdate = true;
 
-    async function loadAllArticles() {
+    async function loadAllPosts() {
       try {
-        const loadedArticles = await getAllArticlesForSearch();
+        const loadedPosts = await getAllPostsForSearch();
 
         if (shouldUpdate) {
-          setAllArticles(loadedArticles);
+          setAllPosts(loadedPosts);
         }
       } catch (error) {
-        console.error("Error fetching all articles:", error);
+        console.error("Error fetching all posts:", error);
       }
     }
 
-    loadAllArticles();
+    loadAllPosts();
 
     return () => {
       shouldUpdate = false;
@@ -52,11 +52,11 @@ export function useArticles() {
   useEffect(() => {
     let shouldUpdate = true;
 
-    async function loadArticles() {
+    async function loadPosts() {
       setIsLoading(true);
 
       try {
-        const data = await getArticles({
+        const data = await getPosts({
           category: selectedCategory,
           page,
           limit: 6,
@@ -64,21 +64,18 @@ export function useArticles() {
 
         if (!shouldUpdate) return;
 
-        setArticles((previousArticles) => {
-          if (page === 1) return data.articles;
+        setPosts((prevPosts) => {
+          if (page === 1) return data.posts;
 
-          const articleMap = new Map(
-            [...previousArticles, ...data.articles].map((article) => [
-              article.id,
-              article,
-            ]),
+          const postMap = new Map(
+            [...prevPosts, ...data.posts].map((post) => [post.id, post]),
           );
 
-          return Array.from(articleMap.values());
+          return Array.from(postMap.values());
         });
         setHasMore(data.currentPage < data.totalPages);
       } catch (error) {
-        console.error("Error fetching articles:", error);
+        console.error("Error fetching posts:", error);
       } finally {
         if (shouldUpdate) {
           setIsLoading(false);
@@ -86,7 +83,7 @@ export function useArticles() {
       }
     }
 
-    loadArticles();
+    loadPosts();
 
     return () => {
       shouldUpdate = false;
@@ -95,7 +92,7 @@ export function useArticles() {
 
   function handleSelectCategory(category) {
     setSelectedCategory(category);
-    setArticles([]);
+    setPosts([]);
     setPage(1);
     setHasMore(true);
   }
@@ -107,12 +104,12 @@ export function useArticles() {
 
   const normalizedSearchKeyword = searchKeyword.trim().toLowerCase();
   const searchResults = normalizedSearchKeyword
-    ? allArticles.filter((article) => {
+    ? allPosts.filter((post) => {
         const searchableText = [
-          article.title,
-          article.description,
-          article.excerpt,
-          article.content,
+          post.title,
+          post.description,
+          post.excerpt,
+          post.content,
         ]
           .filter(Boolean)
           .join(" ")
@@ -121,13 +118,13 @@ export function useArticles() {
         return searchableText.includes(normalizedSearchKeyword);
       })
     : [];
-  const visibleArticles = normalizedSearchKeyword ? searchResults : articles;
+  const visiblePosts = normalizedSearchKeyword ? searchResults : posts;
 
   return {
     selectedCategory,
     searchKeyword,
     setSearchKeyword,
-    visibleArticles,
+    visiblePosts,
     searchResults,
     isLoading,
     hasMore: normalizedSearchKeyword ? false : hasMore,

@@ -1,6 +1,6 @@
 import { getInitials } from "@/utils/utils";
 import { articleCardClasses } from "@/styles/articleCard.styles";
-import { CategoryBadge } from "@/components/ui/CategoryBadge";
+import { CategoryBadge } from "./ui/CategoryBadge";
 
 function ArticleMeta({ author, date, isoDate }) {
   const metaItems = [

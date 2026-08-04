@@ -2,17 +2,17 @@ import { useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { Input } from '@/components/ui/input'
+import { getPublicCategories } from '@/services/articlesApi'
+import { ADMIN_CONTENT_UPDATED_EVENT } from '@/services/adminContentStorage'
+import { articleSectionClasses, searchFieldStyles } from '@/styles/articleSection.styles'
+import { Input } from './ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { getPublicCategories } from '@/services/articlesService'
-import { CONTENT_UPDATED_EVENT } from '@/services/contentEvents'
-import { articleSectionClasses, searchFieldStyles } from '@/styles/articleSection.styles'
+} from './ui/select'
 
 function SearchField({ variant = 'desktop', value, onChange, results = [] }) {
   const styles = searchFieldStyles[variant]
@@ -122,10 +122,10 @@ export function ArticleSection({
       setCategories(getPublicCategories())
     }
 
-    window.addEventListener(CONTENT_UPDATED_EVENT, syncCategories)
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories)
 
     return () => {
-      window.removeEventListener(CONTENT_UPDATED_EVENT, syncCategories)
+      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories)
     }
   }, [])
 

@@ -6,7 +6,7 @@ import { AdminProtectedRoute } from "./components/admin/AdminProtectedRoute";
 import { AdminArticleFormPage } from "./pages/admin/AdminArticleFormPage";
 import { AdminArticlesPage } from "./pages/admin/AdminArticlesPage";
 import { AdminCategoriesPage } from "./pages/admin/AdminCategoriesPage";
-import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
+import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { AdminNotificationsPage } from "./pages/admin/AdminNotificationsPage";
 import { AdminProfilePage } from "./pages/admin/AdminProfilePage";
 import { AdminResetPasswordPage } from "./pages/admin/AdminResetPasswordPage";

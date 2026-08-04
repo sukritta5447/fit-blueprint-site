@@ -5,13 +5,13 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { AdminDeleteCategoryDialog } from "@/components/admin/AdminDeleteCategoryDialog";
 import {
+  ADMIN_CONTENT_UPDATED_EVENT,
   createCategory,
   deleteCategory,
   getCategoryArticleCount,
   getStoredCategories,
   updateCategory,
-} from "@/services/categoryStorage";
-import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
+} from "@/services/adminContentStorage";
 import { adminLayoutClasses } from "@/styles/adminLayout.styles";
 import { cn } from "@/utils/utils";
 
@@ -90,10 +90,10 @@ export function AdminCategoriesPage() {
       setCategories(getStoredCategories());
     }
 
-    window.addEventListener(CONTENT_UPDATED_EVENT, syncCategories);
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories);
 
     return () => {
-      window.removeEventListener(CONTENT_UPDATED_EVENT, syncCategories);
+      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories);
     };
   }, []);
 
