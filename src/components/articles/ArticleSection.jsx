@@ -53,15 +53,15 @@ function SearchField({ variant = 'desktop', value, onChange, results = [] }) {
 
 function CategoryTab({ category, isActive, onSelectCategory }) {
   const stateClasses = isActive
-    ? 'bg-neutral-300 text-neutral-950 shadow-sm disabled:opacity-100'
-    : 'text-neutral-500 hover:bg-white/70 hover:text-neutral-900'
+    ? 'bg-violet-600 text-white shadow-sm disabled:opacity-100'
+    : 'text-slate-400 hover:bg-violet-500/10 hover:text-white'
 
   return (
     <button
       type="button"
       disabled={isActive}
       onClick={() => onSelectCategory(category)}
-      className={`rounded-md px-5 py-3 text-sm font-medium transition ${stateClasses}`}
+      className={`rounded-xl px-5 py-3 text-sm font-medium transition ${stateClasses}`}
     >
       {category}
     </button>
@@ -86,7 +86,7 @@ function CategoryTabs({ categories, selectedCategory, onSelectCategory }) {
 function MobileCategoryFilter({ categories, selectedCategory, onSelectCategory }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-neutral-500">
+      <p className="mb-2 text-sm font-medium text-slate-400">
         Category
       </p>
       <Select

@@ -1,72 +1,59 @@
 import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { navClasses } from "@/styles/navBar.styles";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { navClasses } from "@/styles/navBar.styles";
 
-const navLinks = [
-  {
-    label: "Log in",
-    to: "/login",
-    className: "border border-neutral-300 text-neutral-900 hover:bg-white",
-  },
-  {
-    label: "Sign up",
-    to: "/signup",
-    className: "bg-neutral-950 text-white hover:bg-neutral-800",
-  },
+const mobileLinks = [
+  { label: "Home", to: "/" },
+  { label: "Blog", to: "/blog" },
+  { label: "AI Programs", to: "/program" },
+  { label: "Log in", to: "/login" },
+  { label: "Get Started", to: "/signup", primary: true },
 ];
-
-function NavActionLink({ to, label, className, state }) {
-  return (
-    <Link
-      to={to}
-      state={state}
-      className={`${navClasses.linkBase} ${className}`}
-    >
-      {label}
-    </Link>
-  );
-}
 
 export function GuestNav({ getLinkState }) {
   return (
     <>
-      <nav
-        className="hidden items-center gap-3 md:flex"
-        aria-label="Main navigation"
-      >
-        {navLinks.map((link) => (
-          <NavActionLink
-            key={link.to}
-            {...link}
-            state={getLinkState(link.to)}
-          />
-        ))}
+      <nav className="hidden items-center gap-3 md:flex" aria-label="Account navigation">
+        <Link
+          to="/login"
+          state={getLinkState("/login")}
+          className={`${navClasses.linkBase} border border-violet-500/30 text-slate-200 hover:bg-violet-500/10`}
+        >
+          Log in
+        </Link>
+        <Link
+          to="/signup"
+          state={getLinkState("/signup")}
+          className={`${navClasses.linkBase} bg-violet-600 text-white hover:bg-violet-500`}
+        >
+          Get Started
+        </Link>
       </nav>
 
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="grid size-10 place-items-center text-neutral-950 outline-none md:hidden"
+          className="grid size-10 place-items-center text-white outline-none md:hidden"
           aria-label="Open navigation menu"
         >
           <Menu size={28} strokeWidth={2} />
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          className="w-[calc(100vw-2.5rem)] space-y-6 p-5"
+          className="w-[calc(100vw-2.5rem)] space-y-2 border-violet-500/20 bg-[#121020] p-5 text-white"
         >
-          {navLinks.map((link) => (
+          {mobileLinks.map((link) => (
             <DropdownMenuItem key={link.to} asChild>
               <Link
                 to={link.to}
                 state={getLinkState(link.to)}
-                className={`${navClasses.mobileLinkBase} ${link.className}`}
+                className={`${navClasses.mobileLinkBase} ${link.primary ? "bg-violet-600 text-white" : ""}`}
               >
                 {link.label}
               </Link>

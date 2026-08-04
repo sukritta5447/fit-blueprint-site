@@ -9,7 +9,7 @@ import {
 } from "@/services/articleStorage";
 import { getPublicCategories } from "@/services/categoryStorage";
 
-const API_BASE_URL = "https://blog-post-project-api.vercel.app";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function formatArticleDate(isoDate) {
   return new Intl.DateTimeFormat("en-GB", {

@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
 import { Input } from "@/components/ui/input";
-import { getStoredUsers, setCurrentUser } from "@/services/memberAuthStorage";
+import { clearCurrentAdmin } from "@/services/adminAuthStorage";
+import { signInMember } from "@/services/memberAuthStorage";
 import { authPageClasses } from "@/styles/authPage.styles";
 
 const initialLoginFormValues = {
@@ -13,12 +14,24 @@ const initialLoginFormValues = {
   password: "",
 };
 
+const authEntryPaths = new Set(["/login", "/signin", "/signup"]);
+
+function getLoginReturnPath(from) {
+  if (typeof from !== "string" || !from.startsWith("/") || from.startsWith("//")) {
+    return "/";
+  }
+
+  const [pathname] = from.split(/[?#]/);
+  return authEntryPaths.has(pathname) ? "/" : from;
+}
+
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [formValues, setFormValues] = useState(initialLoginFormValues);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const returnPath = location.state?.from || "/";
+  const returnPath = getLoginReturnPath(location.state?.from);
 
   function handleInputChange(event) {
     const { name, value } = event.target;
@@ -29,26 +42,24 @@ export function LoginPage() {
     }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setIsSubmitting(true);
 
-    const email = formValues.email.trim().toLowerCase();
-    const users = getStoredUsers();
-    const matchedUser = users.find(
-      (user) =>
-        user.email.toLowerCase() === email &&
-        user.password === formValues.password,
-    );
-
-    if (matchedUser) {
-      setCurrentUser(matchedUser);
+    try {
+      await signInMember({
+        email: formValues.email.trim().toLowerCase(),
+        password: formValues.password,
+      });
+      clearCurrentAdmin();
       navigate(returnPath, { replace: true });
-      return;
+    } catch {
+      toast.error("Your password is incorrect or this email doesn’t exist", {
+        description: "Please try another password or email",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    toast.error("Your password is incorrect or this email doesn’t exist", {
-      description: "Please try another password or email",
-    });
   }
 
   return (
@@ -73,6 +84,7 @@ export function LoginPage() {
                   value={formValues.email}
                   className={authPageClasses.input}
                   onChange={handleInputChange}
+                  required
                 />
               </div>
 
@@ -88,12 +100,17 @@ export function LoginPage() {
                   value={formValues.password}
                   className={authPageClasses.input}
                   onChange={handleInputChange}
+                  required
                 />
               </div>
 
               <div className={authPageClasses.actionWrapper}>
-                <button type="submit" className={authPageClasses.submitButton}>
-                  Log in
+                <button
+                  type="submit"
+                  className={authPageClasses.submitButton}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Logging in..." : "Log in"}
                 </button>
               </div>
             </form>
@@ -102,7 +119,6 @@ export function LoginPage() {
               <span>Don&apos;t have any account?</span>
               <Link
                 to="/signup"
-                state={{ from: returnPath }}
                 className={authPageClasses.footerLink}
               >
                 Sign up
