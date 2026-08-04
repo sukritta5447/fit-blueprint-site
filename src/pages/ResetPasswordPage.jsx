@@ -1,25 +1,27 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RotateCcw, User } from "lucide-react";
 
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
-import { ResetPasswordConfirmDialog } from "@/components/auth/ResetPasswordConfirmDialog";
-import { ResetPasswordFields } from "@/components/auth/ResetPasswordFields";
+import { ResetPasswordFields } from "@/components/common/ResetPasswordFields";
+import { ResetPasswordConfirmDialog } from "@/components/common/ResetPasswordConfirmDialog";
 import { useResetPasswordForm } from "@/hooks/useResetPasswordForm";
-import { useMemberAuth } from "@/hooks/useMemberAuth";
-import { updateCurrentUserPassword } from "@/services/memberAuthStorage";
+import {
+  getCurrentUser,
+  updateCurrentUserPassword,
+} from "@/services/signupUsersStorage";
 
 const dialogCancelButtonClassName =
-  "min-w-28 rounded-xl border border-violet-500/30 bg-transparent px-7 py-3 text-sm font-semibold text-white transition hover:bg-violet-500/10";
+  "min-w-28 rounded-full border border-neutral-400 bg-white px-7 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-stone-50";
 const dialogConfirmButtonClassName =
-  "min-w-28 rounded-xl bg-violet-600 px-7 py-3 text-sm font-semibold text-white transition hover:bg-violet-500";
+  "min-w-28 rounded-full bg-neutral-950 px-7 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800";
 const passwordFieldClasses = {
   fields: "space-y-6",
   fieldGroup: "space-y-2",
-  label: "block text-sm font-medium text-slate-400",
+  label: "block text-sm font-medium text-neutral-500",
   input:
-    "h-11 rounded-xl border-violet-500/20 bg-[#0b0913] px-4 text-sm text-white shadow-none placeholder:text-slate-600 focus-visible:ring-violet-500/30",
+    "h-11 rounded-md border-stone-300 bg-white px-4 text-sm shadow-none placeholder:text-neutral-500 focus-visible:ring-neutral-300",
   inputError: "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-200",
   errorText: "text-xs font-medium text-red-600",
 };
@@ -41,7 +43,7 @@ function ProfileAvatar({ user }) {
 
   return (
     <span
-      className="grid size-14 place-items-center rounded-full bg-violet-600 text-white"
+      className="grid size-14 place-items-center rounded-full bg-[#706d66] text-white"
       aria-hidden="true"
     >
       <User size={22} strokeWidth={1.7} />
@@ -51,7 +53,7 @@ function ProfileAvatar({ user }) {
 
 export function ResetPasswordPage() {
   const navigate = useNavigate();
-  const { currentUser, isAuthLoading } = useMemberAuth();
+  const [currentUser] = useState(() => getCurrentUser());
   const {
     formValues,
     formErrors,
@@ -65,12 +67,12 @@ export function ResetPasswordPage() {
   });
 
   useEffect(() => {
-    if (!isAuthLoading && !currentUser) {
+    if (!currentUser) {
       navigate("/login", { replace: true, state: { from: "/reset-password" } });
     }
-  }, [currentUser, isAuthLoading, navigate]);
+  }, [currentUser, navigate]);
 
-  if (isAuthLoading || !currentUser) return null;
+  if (!currentUser) return null;
 
   return (
     <PageShell>
@@ -83,11 +85,11 @@ export function ResetPasswordPage() {
             <div className="flex items-center gap-4">
               <ProfileAvatar user={currentUser} />
               <div className="flex flex-wrap items-center gap-3 text-xl font-semibold tracking-tight md:text-2xl">
-                <span className="text-slate-400">
+                <span className="text-neutral-500">
                   {getDisplayName(currentUser)}
                 </span>
-                <span className="h-6 w-px bg-violet-500/30" aria-hidden="true" />
-                <h1 id="reset-password-title" className="text-white">
+                <span className="h-6 w-px bg-neutral-300" aria-hidden="true" />
+                <h1 id="reset-password-title" className="text-neutral-950">
                   Reset password
                 </h1>
               </div>
@@ -98,14 +100,14 @@ export function ResetPasswordPage() {
                 <nav className="space-y-5 text-sm font-medium">
                   <Link
                     to="/member-management"
-                    className="flex items-center gap-3 text-slate-500"
+                    className="flex items-center gap-3 text-neutral-300"
                   >
                     <User size={16} strokeWidth={1.7} />
                     <span>Profile</span>
                   </Link>
                   <a
                     href="#reset-password-form"
-                    className="flex items-center gap-3 text-violet-300"
+                    className="flex items-center gap-3 text-neutral-800"
                   >
                     <RotateCcw size={16} strokeWidth={1.7} />
                     <span>Reset password</span>
@@ -115,7 +117,7 @@ export function ResetPasswordPage() {
 
               <form
                 id="reset-password-form"
-                className="forge-panel rounded-2xl px-8 py-8 md:px-9 md:py-9"
+                className="rounded-2xl bg-[#eeece9] px-8 py-8 md:px-9 md:py-9"
                 onSubmit={handleSubmit}
               >
                 <ResetPasswordFields

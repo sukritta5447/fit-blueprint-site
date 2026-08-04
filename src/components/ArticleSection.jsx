@@ -2,17 +2,17 @@ import { useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { Input } from '@/components/ui/input'
+import { getPublicCategories } from '@/services/articlesApi'
+import { ADMIN_CONTENT_UPDATED_EVENT } from '@/services/adminContentStorage'
+import { articleSectionClasses, searchFieldStyles } from '@/styles/articleSection.styles'
+import { Input } from './ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { getPublicCategories } from '@/services/articlesService'
-import { CONTENT_UPDATED_EVENT } from '@/services/contentEvents'
-import { articleSectionClasses, searchFieldStyles } from '@/styles/articleSection.styles'
+} from './ui/select'
 
 function SearchField({ variant = 'desktop', value, onChange, results = [] }) {
   const styles = searchFieldStyles[variant]
@@ -53,15 +53,15 @@ function SearchField({ variant = 'desktop', value, onChange, results = [] }) {
 
 function CategoryTab({ category, isActive, onSelectCategory }) {
   const stateClasses = isActive
-    ? 'bg-violet-600 text-white shadow-sm disabled:opacity-100'
-    : 'text-slate-400 hover:bg-violet-500/10 hover:text-white'
+    ? 'bg-neutral-300 text-neutral-950 shadow-sm disabled:opacity-100'
+    : 'text-neutral-500 hover:bg-white/70 hover:text-neutral-900'
 
   return (
     <button
       type="button"
       disabled={isActive}
       onClick={() => onSelectCategory(category)}
-      className={`rounded-xl px-5 py-3 text-sm font-medium transition ${stateClasses}`}
+      className={`rounded-md px-5 py-3 text-sm font-medium transition ${stateClasses}`}
     >
       {category}
     </button>
@@ -86,7 +86,7 @@ function CategoryTabs({ categories, selectedCategory, onSelectCategory }) {
 function MobileCategoryFilter({ categories, selectedCategory, onSelectCategory }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-slate-400">
+      <p className="mb-2 text-sm font-medium text-neutral-500">
         Category
       </p>
       <Select
@@ -122,10 +122,10 @@ export function ArticleSection({
       setCategories(getPublicCategories())
     }
 
-    window.addEventListener(CONTENT_UPDATED_EVENT, syncCategories)
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories)
 
     return () => {
-      window.removeEventListener(CONTENT_UPDATED_EVENT, syncCategories)
+      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories)
     }
   }, [])
 

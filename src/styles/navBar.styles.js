@@ -1,17 +1,22 @@
 export const navClasses = {
-  linkBase: "rounded-xl px-5 py-2.5 text-sm font-medium transition",
+  linkBase:
+    'rounded-full px-5 py-2 text-sm font-medium transition',
   mobileLinkBase:
-    "flex h-12 w-full items-center justify-center rounded-xl text-base font-medium text-slate-200 transition hover:bg-white/5",
-  modalOverlay: "fixed inset-0 z-50 grid place-items-center bg-black/70 px-5",
+    'flex h-14 w-full items-center justify-center rounded-full text-base font-medium transition',
+  modalOverlay:
+    'fixed inset-0 z-50 grid place-items-center bg-neutral-950/35 px-5',
   modalPanel:
-    "relative w-full max-w-md rounded-2xl border border-violet-500/20 bg-[#121020] px-8 py-14 text-center text-white shadow-xl",
+    'relative w-full max-w-md rounded-2xl bg-white px-8 py-14 text-center shadow-xl',
   modalClose:
-    "absolute right-6 top-5 text-slate-500 transition hover:text-white",
-  modalTitle: "text-3xl font-semibold tracking-tight text-white",
-  modalDescription: "mt-6 text-base font-medium text-slate-400",
-  modalActions: "mt-8 flex justify-center gap-3 sm:gap-4",
+    'absolute right-6 top-5 text-neutral-700 transition hover:text-neutral-950',
+  modalTitle:
+    'text-3xl font-semibold tracking-tight text-neutral-950',
+  modalDescription:
+    'mt-6 text-base font-medium text-neutral-500',
+  modalActions:
+    'mt-8 flex justify-center gap-3 sm:gap-4',
   modalCancelButton:
-    "min-w-36 rounded-xl border border-violet-500/30 bg-transparent px-8 py-3 text-base font-semibold text-white transition hover:bg-violet-500/10",
+    'min-w-36 rounded-full border border-neutral-400 bg-white px-8 py-3 text-base font-semibold text-neutral-950 transition hover:bg-stone-50',
   modalConfirmButton:
-    "min-w-36 rounded-xl bg-violet-600 px-8 py-3 text-base font-semibold text-white transition hover:bg-violet-500",
-};
+    'min-w-36 rounded-full bg-neutral-950 px-8 py-3 text-base font-semibold text-white transition hover:bg-neutral-800',
+}

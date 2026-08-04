@@ -2,37 +2,27 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import { AdminLayout } from "./components/admin/AdminLayout";
-import { MemberAuthProvider } from "./contexts/MemberAuthProvider";
 import { AdminProtectedRoute } from "./components/admin/AdminProtectedRoute";
-import { MemberProtectedRoute } from "./components/member/MemberProtectedRoute";
 import { AdminArticleFormPage } from "./pages/admin/AdminArticleFormPage";
-import { AdminAccountsPage } from "./pages/admin/AdminAccountsPage";
 import { AdminArticlesPage } from "./pages/admin/AdminArticlesPage";
 import { AdminCategoriesPage } from "./pages/admin/AdminCategoriesPage";
-import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
-import { AdminMembersPage } from "./pages/admin/AdminMembersPage";
+import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { AdminNotificationsPage } from "./pages/admin/AdminNotificationsPage";
 import { AdminProfilePage } from "./pages/admin/AdminProfilePage";
 import { AdminResetPasswordPage } from "./pages/admin/AdminResetPasswordPage";
 import { ArticlePage } from "./pages/ArticlePage";
-import { BlogPage } from "./pages/BlogPage";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MemberProfilePage } from "./pages/MemberProfilePage";
-import { MemberDashboardPage } from "./pages/MemberDashboardPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
-import { ProgramPage } from "./pages/ProgramPage";
 import { SignupPage } from "./pages/SignupPage";
-import { useMemberAuth } from "./hooks/useMemberAuth";
-import { isAdminRole } from "./services/adminAuthStorage";
+import { getCurrentAdmin } from "./services/adminAuthStorage";
 
 function AdminLoginRoute() {
-  const { currentUser, isAuthLoading } = useMemberAuth();
+  const currentAdmin = getCurrentAdmin();
 
-  if (isAuthLoading) return null;
-
-  if (currentUser && isAdminRole(currentUser.role)) {
+  if (currentAdmin) {
     return <Navigate to="/admin/articles" replace />;
   }
 
@@ -41,27 +31,15 @@ function AdminLoginRoute() {
 
 function App() {
   return (
-    <MemberAuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/admin/login" element={<AdminLoginRoute />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/program" element={<ProgramPage />} />
         <Route path="/article/:id" element={<ArticlePage />} />
         <Route path="/member-management" element={<MemberProfilePage />} />
-        <Route
-          path="/member/dashboard"
-          element={
-            <MemberProtectedRoute>
-              <MemberDashboardPage />
-            </MemberProtectedRoute>
-          }
-        />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-        <Route path="/admin/login" element={<AdminLoginRoute />} />
 
         <Route
           path="/admin"
@@ -72,8 +50,6 @@ function App() {
           }
         >
           <Route index element={<Navigate to="/admin/articles" replace />} />
-          <Route path="members" element={<AdminMembersPage />} />
-          <Route path="admins" element={<AdminAccountsPage />} />
           <Route path="articles" element={<AdminArticlesPage />} />
           <Route path="articles/new" element={<AdminArticleFormPage />} />
           <Route path="articles/:id/edit" element={<AdminArticleFormPage />} />
@@ -98,8 +74,7 @@ function App() {
           },
         }}
       />
-      </BrowserRouter>
-    </MemberAuthProvider>
+    </BrowserRouter>
   );
 }
 

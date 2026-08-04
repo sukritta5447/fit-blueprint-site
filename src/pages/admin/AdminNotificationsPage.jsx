@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
+  ADMIN_CONTENT_UPDATED_EVENT,
   getNotificationViewPath,
   getStoredNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-} from "@/services/adminNotificationsStorage";
-import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
+} from "@/services/adminContentStorage";
 import { adminNotificationsPageClasses } from "@/styles/adminNotificationsPage.styles";
 import { getInitials } from "@/utils/utils";
 
@@ -103,10 +103,10 @@ export function AdminNotificationsPage() {
       setNotifications(getStoredNotifications());
     }
 
-    window.addEventListener(CONTENT_UPDATED_EVENT, syncNotifications);
+    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncNotifications);
 
     return () => {
-      window.removeEventListener(CONTENT_UPDATED_EVENT, syncNotifications);
+      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncNotifications);
     };
   }, []);
 

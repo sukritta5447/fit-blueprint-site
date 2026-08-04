@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 import { SignupForm } from "@/components/auth/SignupForm";
 import { SignupSuccessPanel } from "@/components/auth/SignupSuccessPanel";
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
 import { initialSignupFormValues } from "@/data/signupForm";
-import { clearCurrentAdmin } from "@/services/adminAuthStorage";
-import { signUpMember } from "@/services/memberAuthStorage";
+import {
+  getStoredUsers,
+  saveStoredUsers,
+  setCurrentUser,
+} from "@/services/signupUsersStorage";
 import { authPageClasses } from "@/styles/authPage.styles";
 import { validateSignupForm } from "@/utils/signupValidation";
 
@@ -19,8 +21,6 @@ export function SignupPage() {
   const [formErrors, setFormErrors] = useState({});
   const [touchedFields, setTouchedFields] = useState({});
   const [isRegistrationSuccess, setIsRegistrationSuccess] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 
   const returnPath = location.state?.from || "/";
 
@@ -70,7 +70,7 @@ export function SignupPage() {
     setFormErrors(getVisibleErrors(errors, nextTouchedFields));
   }
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
 
     const errors = validateSignupForm(formValues);
@@ -83,33 +83,24 @@ export function SignupPage() {
       return;
     }
 
-    setIsSubmitting(true);
+    const users = getStoredUsers();
+    const newUser = {
+      name: formValues.name.trim(),
+      username: formValues.username.trim(),
+      email: formValues.email.trim().toLowerCase(),
+      password: formValues.password,
+      image: "",
+      createdAt: new Date().toISOString(),
+    };
 
-    try {
-      const result = await signUpMember({
-        name: formValues.name.trim(),
-        username: formValues.username.trim(),
-        email: formValues.email.trim().toLowerCase(),
-        password: formValues.password,
-      });
-
-      clearCurrentAdmin();
-      setNeedsEmailConfirmation(result.needsEmailConfirmation);
-      setFormErrors({});
-      setIsRegistrationSuccess(true);
-    } catch (error) {
-      toast.error("Unable to create account", {
-        description: error.message,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    saveStoredUsers([...users, newUser]);
+    setCurrentUser(newUser);
+    setFormErrors({});
+    setIsRegistrationSuccess(true);
   }
 
   function handleContinue() {
-    navigate(needsEmailConfirmation ? "/login" : returnPath, {
-      replace: true,
-    });
+    navigate(returnPath, { replace: true });
   }
 
   return (
@@ -117,10 +108,7 @@ export function SignupPage() {
       <main>
         <Container className={authPageClasses.main}>
           {isRegistrationSuccess ? (
-            <SignupSuccessPanel
-              needsEmailConfirmation={needsEmailConfirmation}
-              onContinue={handleContinue}
-            />
+            <SignupSuccessPanel onContinue={handleContinue} />
           ) : (
             <SignupForm
               formValues={formValues}
@@ -128,7 +116,6 @@ export function SignupPage() {
               onInputChange={handleInputChange}
               onInputBlur={handleInputBlur}
               onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
             />
           )}
         </Container>

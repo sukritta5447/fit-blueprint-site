@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { Container } from '../components/common/Container'
 import { Footer } from '../components/Footer'
-import { NavBar } from '@/components/nav/NavBar'
+import { NavBar } from '../components/NavBar'
 
 const notFoundClasses = {
   main:
