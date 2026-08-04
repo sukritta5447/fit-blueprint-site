@@ -30,6 +30,7 @@ export function useResetPasswordForm({ onResetPassword, onSuccess }) {
   const [formValues, setFormValues] = useState(initialPasswordValues);
   const [formErrors, setFormErrors] = useState({});
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleInputChange(event) {
     const { name, value } = event.target;
@@ -62,11 +63,13 @@ export function useResetPasswordForm({ onResetPassword, onSuccess }) {
     setIsConfirmOpen(false);
   }
 
-  function handleConfirmReset() {
-    const result = onResetPassword({
+  async function handleConfirmReset() {
+    setIsSubmitting(true);
+    const result = await onResetPassword({
       currentPassword: formValues.currentPassword,
       newPassword: formValues.newPassword,
     });
+    setIsSubmitting(false);
 
     if (!result.success) {
       setFormErrors({ currentPassword: result.error });
@@ -84,6 +87,7 @@ export function useResetPasswordForm({ onResetPassword, onSuccess }) {
     formValues,
     formErrors,
     isConfirmOpen,
+    isSubmitting,
     handleInputChange,
     handleSubmit,
     handleCancelReset,

@@ -1,12 +1,11 @@
+import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
-import {
-  getStoredAdminUsers,
-  setCurrentAdmin,
-} from "@/services/adminAuthStorage";
+import { signInAdmin } from "@/services/adminAuthStorage";
+import { clearCurrentUser } from "@/services/memberAuthStorage";
 import { authPageClasses } from "@/styles/authPage.styles";
 import { cn } from "@/utils/utils";
 
@@ -20,6 +19,7 @@ export function AdminLoginPage() {
   const location = useLocation();
   const [formValues, setFormValues] = useState(initialLoginFormValues);
   const [hasLoginError, setHasLoginError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const returnPath = location.state?.from || "/admin/articles";
 
@@ -33,31 +33,29 @@ export function AdminLoginPage() {
     setHasLoginError(false);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setIsSubmitting(true);
 
-    const email = formValues.email.trim().toLowerCase();
-    const adminUsers = getStoredAdminUsers();
-    const matchedAdmin = adminUsers.find(
-      (adminUser) =>
-        adminUser.email.toLowerCase() === email &&
-        adminUser.password === formValues.password,
-    );
-
-    if (matchedAdmin) {
-      setCurrentAdmin(matchedAdmin);
+    try {
+      await clearCurrentUser();
+      await signInAdmin({
+        email: formValues.email.trim().toLowerCase(),
+        password: formValues.password,
+      });
       navigate(returnPath, { replace: true });
-      return;
+    } catch (error) {
+      setHasLoginError(true);
+      toast.error("Unable to access the admin panel", {
+        description: error.message,
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setHasLoginError(true);
-    toast.error("Your password is incorrect or this email doesn’t exist", {
-      description: "Please try another password or email",
-    });
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4] px-5 py-20 text-neutral-900 md:py-28">
+    <div className="min-h-screen bg-[#07060d] px-5 py-20 text-white md:py-28">
       <main>
         <section
           className={cn(
@@ -66,16 +64,22 @@ export function AdminLoginPage() {
           )}
           aria-labelledby="admin-login-title"
         >
-          <p className="text-center text-sm font-semibold text-[#e8b892]">
-            Admin panel
+          <span className="mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-violet-500/15 text-violet-400">
+            <ShieldCheck size={26} />
+          </span>
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-violet-400">
+            Restricted access
           </p>
           <h1 id="admin-login-title" className={authPageClasses.title}>
-            Log in
+            Admin log in
           </h1>
 
           <form className={authPageClasses.form} onSubmit={handleSubmit}>
             <div className={authPageClasses.fieldGroup}>
-              <label htmlFor="admin-login-email" className={authPageClasses.label}>
+              <label
+                htmlFor="admin-login-email"
+                className={authPageClasses.label}
+              >
                 Email
               </label>
               <Input
@@ -90,6 +94,7 @@ export function AdminLoginPage() {
                   hasLoginError && authPageClasses.inputError,
                 )}
                 onChange={handleInputChange}
+                required
               />
             </div>
 
@@ -112,12 +117,17 @@ export function AdminLoginPage() {
                   hasLoginError && authPageClasses.inputError,
                 )}
                 onChange={handleInputChange}
+                required
               />
             </div>
 
             <div className={authPageClasses.actionWrapper}>
-              <button type="submit" className={authPageClasses.submitButton}>
-                Log in
+              <button
+                type="submit"
+                className={authPageClasses.submitButton}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Logging in..." : "Log in"}
               </button>
             </div>
           </form>
@@ -126,4 +136,3 @@ export function AdminLoginPage() {
     </div>
   );
 }
-

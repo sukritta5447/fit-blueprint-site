@@ -1,82 +1,38 @@
-const ADMIN_USERS_STORAGE_KEY = "jb-fit-blueprint-admin-users";
+import { supabase } from "@/lib/supabase";
+
 const CURRENT_ADMIN_STORAGE_KEY = "jb-fit-blueprint-current-admin";
 export const CURRENT_ADMIN_UPDATED_EVENT =
   "jb-fit-blueprint-current-admin-updated";
 
-const defaultAdminUsers = [
-  {
-    name: "Thompson P.",
-    username: "thompson",
-    email: "adminthompson@gmail.com",
-    password: "password",
-    bio: "I am a pet enthusiast and freelance writer who specializes in animal behavior and care.",
-    image:
-      "https://images.unsplash.com/photo-1574158622682-e40e69881006?q=80&w=160&auto=format&fit=crop",
-    createdAt: "2026-07-13T00:00:00.000Z",
-  },
-  {
-    name: "Admin",
-    username: "admin",
-    email: "testadmin@gmail.com",
-    password: "admin123",
-    bio: "",
-    image:
-      "https://images.unsplash.com/photo-1574158622682-e40e69881006?q=80&w=160&auto=format&fit=crop",
-    createdAt: "2026-07-13T00:00:00.000Z",
-  },
-];
-
-function saveAdminUsers(adminUsers) {
-  localStorage.setItem(ADMIN_USERS_STORAGE_KEY, JSON.stringify(adminUsers));
-}
+const ADMIN_ROLES = new Set(["content_admin", "support_admin", "super_admin"]);
 
 function dispatchAdminUpdated() {
   window.dispatchEvent(new Event(CURRENT_ADMIN_UPDATED_EVENT));
 }
 
-function mergeDefaultAdminUsers(storedAdminUsers = []) {
-  const mergedUsers = [...storedAdminUsers];
-
-  defaultAdminUsers.forEach((defaultAdminUser) => {
-    const existingIndex = mergedUsers.findIndex(
-      (adminUser) =>
-        adminUser.email.toLowerCase() === defaultAdminUser.email.toLowerCase(),
-    );
-
-    if (existingIndex === -1) {
-      mergedUsers.push(defaultAdminUser);
-      return;
-    }
-
-    mergedUsers[existingIndex] = {
-      ...defaultAdminUser,
-      ...mergedUsers[existingIndex],
-      username: mergedUsers[existingIndex].username || defaultAdminUser.username,
-      bio: mergedUsers[existingIndex].bio ?? defaultAdminUser.bio,
-    };
-  });
-
-  if (mergedUsers.length !== storedAdminUsers.length) {
-    saveAdminUsers(mergedUsers);
-  }
-
-  return mergedUsers;
+export function isAdminRole(role) {
+  return ADMIN_ROLES.has(role);
 }
 
-export function getStoredAdminUsers() {
-  try {
-    const storedAdminUsers = localStorage.getItem(ADMIN_USERS_STORAGE_KEY);
+export function mapSupabaseAdmin(user) {
+  const role = user?.app_metadata?.role;
 
-    if (storedAdminUsers) {
-      return mergeDefaultAdminUsers(JSON.parse(storedAdminUsers));
-    }
+  if (!user || !isAdminRole(role)) return null;
 
-    saveAdminUsers(defaultAdminUsers);
-    return defaultAdminUsers;
-  } catch (error) {
-    console.error("Error reading admin users:", error);
-    return defaultAdminUsers;
-  }
+  return {
+    id: user.id,
+    name:
+      user.user_metadata?.name ||
+      user.user_metadata?.full_name ||
+      user.email?.split("@")[0] ||
+      "Admin",
+    username: user.user_metadata?.username || "",
+    email: user.email || "",
+    bio: user.user_metadata?.bio || "",
+    image:
+      user.user_metadata?.image || user.user_metadata?.avatar_url || "",
+    role,
+  };
 }
 
 export function getCurrentAdmin() {
@@ -90,95 +46,127 @@ export function getCurrentAdmin() {
 }
 
 export function getCurrentAdminProfile() {
-  const currentAdmin = getCurrentAdmin();
-
-  if (!currentAdmin) return null;
-
-  const storedAdmin = getStoredAdminUsers().find(
-    (adminUser) =>
-      adminUser.email.toLowerCase() === currentAdmin.email.toLowerCase(),
-  );
-
-  if (!storedAdmin) return currentAdmin;
-
-  return {
-    name: storedAdmin.name,
-    username: storedAdmin.username || "",
-    email: storedAdmin.email,
-    bio: storedAdmin.bio || "",
-    image: storedAdmin.image || "",
-  };
+  return getCurrentAdmin();
 }
 
 export function setCurrentAdmin(adminUser) {
+  if (!adminUser) {
+    clearCurrentAdmin();
+    return;
+  }
+
   const currentAdmin = {
-    name: adminUser.name,
+    id: adminUser.id,
+    name: adminUser.name || "Admin",
     username: adminUser.username || "",
-    email: adminUser.email,
+    email: adminUser.email || "",
     bio: adminUser.bio || "",
     image: adminUser.image || "",
+    role: adminUser.role,
   };
 
   localStorage.setItem(CURRENT_ADMIN_STORAGE_KEY, JSON.stringify(currentAdmin));
   dispatchAdminUpdated();
 }
 
-export function updateCurrentAdminProfile(profileValues) {
-  const currentAdmin = getCurrentAdmin();
+export function syncCurrentAdminFromUser(user) {
+  const admin = mapSupabaseAdmin(user);
 
-  if (!currentAdmin) return null;
+  if (admin) {
+    setCurrentAdmin(admin);
+  } else {
+    clearCurrentAdmin();
+  }
 
-  const adminUsers = getStoredAdminUsers();
-  const adminIndex = adminUsers.findIndex(
-    (adminUser) =>
-      adminUser.email.toLowerCase() === currentAdmin.email.toLowerCase(),
-  );
+  return admin;
+}
 
-  if (adminIndex === -1) return null;
+export async function signInAdmin({ email, password }) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) throw error;
+
+  const admin = mapSupabaseAdmin(data.user);
+
+  if (!admin) {
+    await supabase.auth.signOut();
+    throw new Error("This account does not have administrator access");
+  }
+
+  setCurrentAdmin(admin);
+  return admin;
+}
+
+export async function updateCurrentAdminProfile(profileValues) {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !mapSupabaseAdmin(user)) return null;
+
+  const { data, error } = await supabase.auth.updateUser({
+    email: profileValues.email.trim().toLowerCase(),
+    data: {
+      name: profileValues.name.trim(),
+      username: profileValues.username.trim(),
+      bio: profileValues.bio.trim(),
+      image: profileValues.image || "",
+    },
+  });
+
+  if (error) throw error;
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({
+      full_name: profileValues.name.trim(),
+      username: profileValues.username.trim(),
+      bio: profileValues.bio.trim(),
+      avatar_url: profileValues.image || null,
+    })
+    .eq("id", user.id);
+
+  if (profileError) throw profileError;
 
   const updatedAdmin = {
-    ...adminUsers[adminIndex],
-    name: profileValues.name.trim(),
-    username: profileValues.username.trim(),
-    email: profileValues.email.trim().toLowerCase(),
+    ...mapSupabaseAdmin(data.user),
     bio: profileValues.bio.trim(),
-    image: profileValues.image || "",
   };
 
-  const updatedAdminUsers = [...adminUsers];
-  updatedAdminUsers[adminIndex] = updatedAdmin;
-  saveAdminUsers(updatedAdminUsers);
   setCurrentAdmin(updatedAdmin);
-
   return updatedAdmin;
 }
 
-export function updateCurrentAdminPassword(passwordValues) {
-  const currentAdmin = getCurrentAdmin();
+export async function updateCurrentAdminPassword(passwordValues) {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if (!currentAdmin) return { success: false, error: "No active admin found" };
-
-  const adminUsers = getStoredAdminUsers();
-  const adminIndex = adminUsers.findIndex(
-    (adminUser) =>
-      adminUser.email.toLowerCase() === currentAdmin.email.toLowerCase(),
-  );
-
-  if (adminIndex === -1) {
+  if (userError || !mapSupabaseAdmin(user) || !user.email) {
     return { success: false, error: "No active admin found" };
   }
 
-  if (adminUsers[adminIndex].password !== passwordValues.currentPassword) {
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: passwordValues.currentPassword,
+  });
+
+  if (signInError) {
     return { success: false, error: "Current password is incorrect" };
   }
 
-  const updatedAdminUsers = [...adminUsers];
-  updatedAdminUsers[adminIndex] = {
-    ...updatedAdminUsers[adminIndex],
+  const { error: updateError } = await supabase.auth.updateUser({
     password: passwordValues.newPassword,
-  };
+  });
 
-  saveAdminUsers(updatedAdminUsers);
+  if (updateError) {
+    return { success: false, error: updateError.message };
+  }
 
   return { success: true };
 }
@@ -186,4 +174,11 @@ export function updateCurrentAdminPassword(passwordValues) {
 export function clearCurrentAdmin() {
   localStorage.removeItem(CURRENT_ADMIN_STORAGE_KEY);
   dispatchAdminUpdated();
+}
+
+export async function signOutAdmin() {
+  const { error } = await supabase.auth.signOut();
+  clearCurrentAdmin();
+
+  if (error) throw error;
 }
