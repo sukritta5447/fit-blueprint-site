@@ -94,19 +94,19 @@ function AuthorCard({ className = "" }) {
             className="size-10 rounded-full object-cover"
           />
           <div>
-            <p className="text-[10px] font-medium text-neutral-400">
+            <p className="text-[10px] font-medium text-slate-500">
               {featuredAuthor.role}
             </p>
-            <p className="text-sm font-semibold text-neutral-950">
+            <p className="text-sm font-semibold text-white">
               {featuredAuthor.name}
             </p>
           </div>
         </div>
-        <hr className="my-4 border-stone-200" />
-        <p className="text-xs leading-5 text-neutral-600">
+        <hr className="my-4 border-violet-500/15" />
+        <p className="text-xs leading-5 text-slate-400">
           {featuredAuthor.bio}
         </p>
-        <p className="mt-3 text-xs leading-5 text-neutral-500">
+        <p className="mt-3 text-xs leading-5 text-slate-500">
           {featuredAuthor.note}
         </p>
       </div>
@@ -190,7 +190,7 @@ function ShareBar({ articleUrl, onAuthRequired }) {
 function CommentSection({ onAuthRequired }) {
   return (
     <section className="mt-10">
-      <h2 className="text-base font-semibold text-neutral-950">Comment</h2>
+      <h2 className="text-base font-semibold text-white">Comment</h2>
 
       <div className="mt-4">
         <textarea
@@ -217,14 +217,14 @@ function CommentSection({ onAuthRequired }) {
             </span>
             <div>
               <p>
-                <span className="text-sm font-semibold text-neutral-950">
+                <span className="text-sm font-semibold text-white">
                   {comment.name}
                 </span>
-                <span className="ml-2 text-xs text-neutral-400">
+                <span className="ml-2 text-xs text-slate-500">
                   {comment.date}
                 </span>
               </p>
-              <p className="mt-1 text-sm leading-6 text-neutral-600">
+              <p className="mt-1 text-sm leading-6 text-slate-400">
                 {comment.text}
               </p>
             </div>
@@ -280,10 +280,10 @@ function NotFound() {
   return (
     <PageShell>
       <Container className="py-24 text-center">
-        <p className="text-neutral-500">Article not found.</p>
+        <p className="text-slate-500">Article not found.</p>
         <Link
           to="/"
-          className="mt-4 inline-block text-sm font-medium text-neutral-950 underline underline-offset-4"
+          className="mt-4 inline-block text-sm font-medium text-violet-300 underline underline-offset-4"
         >
           Back to home
         </Link>
@@ -296,7 +296,7 @@ function LoadingArticle() {
   return (
     <PageShell>
       <Container className="py-24 text-center">
-        <p className="text-neutral-500">Loading article...</p>
+        <p className="text-slate-500">Loading article...</p>
       </Container>
     </PageShell>
   );

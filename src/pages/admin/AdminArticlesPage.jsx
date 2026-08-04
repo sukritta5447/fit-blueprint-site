@@ -4,11 +4,11 @@ import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  ADMIN_CONTENT_UPDATED_EVENT,
   deleteArticle,
   getStoredArticles,
-  getStoredCategories,
-} from "@/services/adminContentStorage";
+} from "@/services/articleStorage";
+import { getStoredCategories } from "@/services/categoryStorage";
+import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 import {
   ARTICLE_STATUS_OPTIONS,
   adminArticlesPageClasses,
@@ -67,10 +67,10 @@ export function AdminArticlesPage() {
       );
     }
 
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncArticles);
+    window.addEventListener(CONTENT_UPDATED_EVENT, syncArticles);
 
     return () => {
-      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncArticles);
+      window.removeEventListener(CONTENT_UPDATED_EVENT, syncArticles);
     };
   }, []);
 

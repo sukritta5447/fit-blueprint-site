@@ -5,13 +5,13 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { AdminDeleteCategoryDialog } from "@/components/admin/AdminDeleteCategoryDialog";
 import {
-  ADMIN_CONTENT_UPDATED_EVENT,
   createCategory,
   deleteCategory,
   getCategoryArticleCount,
   getStoredCategories,
   updateCategory,
-} from "@/services/adminContentStorage";
+} from "@/services/categoryStorage";
+import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 import { adminLayoutClasses } from "@/styles/adminLayout.styles";
 import { cn } from "@/utils/utils";
 
@@ -47,7 +47,10 @@ function CategoryFormDialog({
         </h2>
 
         <div className="mt-6 space-y-2">
-          <label htmlFor="category-name" className="text-sm font-medium text-neutral-500">
+          <label
+            htmlFor="category-name"
+            className="text-sm font-medium text-neutral-500"
+          >
             Category name
           </label>
           <Input
@@ -90,10 +93,10 @@ export function AdminCategoriesPage() {
       setCategories(getStoredCategories());
     }
 
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories);
+    window.addEventListener(CONTENT_UPDATED_EVENT, syncCategories);
 
     return () => {
-      window.removeEventListener(ADMIN_CONTENT_UPDATED_EVENT, syncCategories);
+      window.removeEventListener(CONTENT_UPDATED_EVENT, syncCategories);
     };
   }, []);
 
@@ -169,7 +172,7 @@ export function AdminCategoriesPage() {
               <tbody>
                 {editableCategories.map((category) => (
                   <tr key={category} className={adminLayoutClasses.tableRow}>
-                    <td className="px-3 py-4 font-medium text-neutral-900">
+                    <td className="px-3 py-4 font-medium text-white">
                       {category}
                     </td>
                     <td className="px-3 py-4 text-neutral-500">
@@ -179,7 +182,10 @@ export function AdminCategoriesPage() {
                       <div className="flex flex-wrap justify-end gap-2">
                         <button
                           type="button"
-                          className={cn(adminLayoutClasses.actionButton, "gap-2")}
+                          className={cn(
+                            adminLayoutClasses.actionButton,
+                            "gap-2",
+                          )}
                           onClick={() => setCategoryToEdit(category)}
                         >
                           <Pencil size={14} />
@@ -187,7 +193,10 @@ export function AdminCategoriesPage() {
                         </button>
                         <button
                           type="button"
-                          className={cn(adminLayoutClasses.dangerButton, "gap-2")}
+                          className={cn(
+                            adminLayoutClasses.dangerButton,
+                            "gap-2",
+                          )}
                           onClick={() => setCategoryToDelete(category)}
                         >
                           <Trash2 size={14} />
@@ -203,7 +212,8 @@ export function AdminCategoriesPage() {
         )}
 
         <p className="mt-6 text-xs text-neutral-400">
-          Highlight is a special filter category and cannot be edited or deleted.
+          Highlight is a special filter category and cannot be edited or
+          deleted.
         </p>
       </section>
 

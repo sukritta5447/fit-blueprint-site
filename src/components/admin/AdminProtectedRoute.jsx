@@ -1,12 +1,15 @@
 import { Navigate, useLocation } from "react-router-dom";
 
-import { getCurrentAdmin } from "@/services/adminAuthStorage";
+import { useMemberAuth } from "@/hooks/useMemberAuth";
+import { isAdminRole } from "@/services/adminAuthStorage";
 
 export function AdminProtectedRoute({ children }) {
   const location = useLocation();
-  const currentAdmin = getCurrentAdmin();
+  const { currentUser, isAuthLoading } = useMemberAuth();
 
-  if (!currentAdmin) {
+  if (isAuthLoading) return null;
+
+  if (!currentUser || !isAdminRole(currentUser.role)) {
     return (
       <Navigate
         to="/admin/login"
