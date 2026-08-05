@@ -11,7 +11,13 @@ import {
 import { adminArticleFormPageClasses } from "@/styles/adminArticleFormPage.styles";
 import { cn } from "@/utils/utils";
 
-function ThumbnailField({ image, onUploadClick, fileInputRef, onFileChange }) {
+function ThumbnailField({
+  image,
+  isUploading,
+  onUploadClick,
+  fileInputRef,
+  onFileChange,
+}) {
   return (
     <div className={adminArticleFormPageClasses.fieldGroup}>
       <span className={adminArticleFormPageClasses.label}>Thumbnail image</span>
@@ -42,10 +48,11 @@ function ThumbnailField({ image, onUploadClick, fileInputRef, onFileChange }) {
           />
           <button
             type="button"
+            disabled={isUploading}
             className={adminArticleFormPageClasses.outlineButton}
             onClick={onUploadClick}
           >
-            Upload thumbnail image
+            {isUploading ? "Uploading..." : "Upload thumbnail image"}
           </button>
         </div>
       </div>
@@ -59,6 +66,7 @@ export function AdminArticleFormFields({
   formErrors,
   formValues,
   isEditing,
+  isUploading,
   onCategoryChange,
   onDeleteClick,
   onInputChange,
@@ -69,6 +77,7 @@ export function AdminArticleFormFields({
     <>
       <ThumbnailField
         image={formValues.image}
+        isUploading={isUploading}
         onUploadClick={onUploadClick}
         fileInputRef={fileInputRef}
         onFileChange={onThumbnailChange}
@@ -86,14 +95,14 @@ export function AdminArticleFormFields({
         )}
       >
         <label className={adminArticleFormPageClasses.label}>Category</label>
-        <Select value={formValues.category} onValueChange={onCategoryChange}>
+        <Select value={formValues.categoryId} onValueChange={onCategoryChange}>
           <SelectTrigger className={adminArticleFormPageClasses.input}>
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
+              <SelectItem key={category.id} value={String(category.id)}>
+                {category.name}
               </SelectItem>
             ))}
           </SelectContent>

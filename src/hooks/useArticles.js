@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
-import { getAllPostsForSearch, getPosts } from "@/services/articlesApi";
-import { ADMIN_CONTENT_UPDATED_EVENT } from "@/services/adminContentStorage";
+import {
+  getAllArticlesForSearch,
+  getArticles,
+} from "@/services/articlesService";
+import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 
-export function usePosts() {
+export function useArticles() {
   const [selectedCategory, setSelectedCategory] = useState("Highlight");
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [posts, setPosts] = useState([]);
-  const [allPosts, setAllPosts] = useState([]);
+  const [articles, setArticles] = useState([]);
+  const [allArticles, setAllArticles] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -17,32 +21,29 @@ export function usePosts() {
       setRefreshKey((currentKey) => currentKey + 1);
     }
 
-    window.addEventListener(ADMIN_CONTENT_UPDATED_EVENT, handleContentUpdated);
+    window.addEventListener(CONTENT_UPDATED_EVENT, handleContentUpdated);
 
     return () => {
-      window.removeEventListener(
-        ADMIN_CONTENT_UPDATED_EVENT,
-        handleContentUpdated,
-      );
+      window.removeEventListener(CONTENT_UPDATED_EVENT, handleContentUpdated);
     };
   }, []);
 
   useEffect(() => {
     let shouldUpdate = true;
 
-    async function loadAllPosts() {
+    async function loadAllArticles() {
       try {
-        const loadedPosts = await getAllPostsForSearch();
+        const loadedArticles = await getAllArticlesForSearch();
 
         if (shouldUpdate) {
-          setAllPosts(loadedPosts);
+          setAllArticles(loadedArticles);
         }
       } catch (error) {
-        console.error("Error fetching all posts:", error);
+        console.error("Error fetching all articles:", error);
       }
     }
 
-    loadAllPosts();
+    loadAllArticles();
 
     return () => {
       shouldUpdate = false;
@@ -52,11 +53,12 @@ export function usePosts() {
   useEffect(() => {
     let shouldUpdate = true;
 
-    async function loadPosts() {
+    async function loadArticles() {
       setIsLoading(true);
+      setError("");
 
       try {
-        const data = await getPosts({
+        const data = await getArticles({
           category: selectedCategory,
           page,
           limit: 6,
@@ -64,18 +66,29 @@ export function usePosts() {
 
         if (!shouldUpdate) return;
 
-        setPosts((prevPosts) => {
-          if (page === 1) return data.posts;
+        setArticles((previousArticles) => {
+          if (page === 1) return data.articles;
 
-          const postMap = new Map(
-            [...prevPosts, ...data.posts].map((post) => [post.id, post]),
+          const articleMap = new Map(
+            [...previousArticles, ...data.articles].map((article) => [
+              article.id,
+              article,
+            ]),
           );
 
-          return Array.from(postMap.values());
+          return Array.from(articleMap.values());
         });
         setHasMore(data.currentPage < data.totalPages);
       } catch (error) {
-        console.error("Error fetching posts:", error);
+        console.error("Error fetching articles:", error);
+
+        if (shouldUpdate) {
+          setError(
+            error.response?.data?.message ||
+              error.response?.data?.error ||
+              "Unable to load articles. Please try again.",
+          );
+        }
       } finally {
         if (shouldUpdate) {
           setIsLoading(false);
@@ -83,7 +96,7 @@ export function usePosts() {
       }
     }
 
-    loadPosts();
+    loadArticles();
 
     return () => {
       shouldUpdate = false;
@@ -92,7 +105,7 @@ export function usePosts() {
 
   function handleSelectCategory(category) {
     setSelectedCategory(category);
-    setPosts([]);
+    setArticles([]);
     setPage(1);
     setHasMore(true);
   }
@@ -102,14 +115,21 @@ export function usePosts() {
     setPage((currentPage) => currentPage + 1);
   }
 
+  function handleRetry() {
+    setArticles([]);
+    setPage(1);
+    setHasMore(true);
+    setRefreshKey((currentKey) => currentKey + 1);
+  }
+
   const normalizedSearchKeyword = searchKeyword.trim().toLowerCase();
   const searchResults = normalizedSearchKeyword
-    ? allPosts.filter((post) => {
+    ? allArticles.filter((article) => {
         const searchableText = [
-          post.title,
-          post.description,
-          post.excerpt,
-          post.content,
+          article.title,
+          article.description,
+          article.excerpt,
+          article.content,
         ]
           .filter(Boolean)
           .join(" ")
@@ -118,17 +138,19 @@ export function usePosts() {
         return searchableText.includes(normalizedSearchKeyword);
       })
     : [];
-  const visiblePosts = normalizedSearchKeyword ? searchResults : posts;
+  const visibleArticles = normalizedSearchKeyword ? searchResults : articles;
 
   return {
     selectedCategory,
     searchKeyword,
     setSearchKeyword,
-    visiblePosts,
+    visibleArticles,
     searchResults,
     isLoading,
+    error,
     hasMore: normalizedSearchKeyword ? false : hasMore,
     handleSelectCategory,
     handleLoadMore,
+    handleRetry,
   };
 }

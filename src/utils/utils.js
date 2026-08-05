@@ -6,8 +6,13 @@ export function cn(...inputs) {
 }
 
 export function getInitials(name) {
-  return name
+  const normalizedName = typeof name === "string" ? name.trim() : "";
+
+  if (!normalizedName) return "JB";
+
+  return normalizedName
     .split(" ")
+    .filter(Boolean)
     .map((part) => part[0])
     .join("")
     .slice(0, 2)

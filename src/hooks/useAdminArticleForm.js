@@ -2,41 +2,40 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-import { getCurrentAdmin } from "@/services/adminAuthStorage";
+import { useMemberAuth } from "@/hooks/useMemberAuth";
 import {
-  createArticle,
-  deleteArticle,
-  getStoredArticleById,
-  getStoredCategories,
-  updateArticle,
-} from "@/services/adminContentStorage";
+  createAdminArticle,
+  deleteAdminArticle,
+  getAdminArticle,
+  getAdminCategories,
+  getPostStatuses,
+  updateAdminArticle,
+} from "@/services/adminContentService";
+import { getApiErrorMessage } from "@/services/apiClient";
+import { uploadImage } from "@/services/uploadService";
 
 const INTRODUCTION_MAX_LENGTH = 120;
 
-function getDefaultAuthorName() {
-  const currentAdmin = getCurrentAdmin();
-  return currentAdmin?.name || "Thompson P.";
+function createSlug(title) {
+  const slug = title
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return slug || `post-${Date.now()}`;
 }
 
-function getInitialFormValues(article) {
-  if (!article) {
-    return {
-      title: "",
-      excerpt: "",
-      category: "",
-      author: getDefaultAuthorName(),
-      image: "",
-      content: "",
-    };
-  }
-
+function getInitialFormValues(article, authorName) {
   return {
-    title: article.title,
-    excerpt: article.excerpt,
-    category: article.category,
-    author: article.author,
-    image: article.image,
-    content: article.content,
+    author: authorName || "Admin",
+    categoryId: article?.categoryId || "",
+    content: article?.content || "",
+    excerpt: article?.excerpt || "",
+    image: article?.image || "",
+    title: article?.title || "",
   };
 }
 
@@ -49,8 +48,7 @@ function validateArticleForm(formValues) {
   } else if (formValues.excerpt.trim().length > INTRODUCTION_MAX_LENGTH) {
     errors.excerpt = `Introduction must be ${INTRODUCTION_MAX_LENGTH} letters or fewer`;
   }
-  if (!formValues.category) errors.category = "Category is required";
-  if (!formValues.author.trim()) errors.author = "Author name is required";
+  if (!formValues.categoryId) errors.category = "Category is required";
   if (!formValues.content.trim()) errors.content = "Content is required";
 
   return errors;
@@ -82,74 +80,97 @@ function getArticleSaveToast(status, isEditing) {
 export function useAdminArticleForm() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { currentUser } = useMemberAuth();
   const fileInputRef = useRef(null);
   const isEditing = Boolean(id);
-  const existingArticle = isEditing ? getStoredArticleById(id) : null;
-  const [categories] = useState(() =>
-    getStoredCategories().filter((category) => category !== "Highlight"),
-  );
+  const [categories, setCategories] = useState([]);
+  const [statuses, setStatuses] = useState([]);
+  const [existingArticle, setExistingArticle] = useState(null);
   const [formValues, setFormValues] = useState(() =>
-    getInitialFormValues(existingArticle),
+    getInitialFormValues(null, currentUser?.name),
   );
   const [formErrors, setFormErrors] = useState({});
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    if (isEditing && !existingArticle) {
-      navigate("/admin/articles", { replace: true });
+    let shouldUpdate = true;
+
+    async function loadFormData() {
+      setIsLoading(true);
+
+      try {
+        const [nextCategories, nextStatuses, article] = await Promise.all([
+          getAdminCategories(),
+          getPostStatuses(),
+          isEditing ? getAdminArticle(id) : Promise.resolve(null),
+        ]);
+
+        if (!shouldUpdate) return;
+
+        setCategories(nextCategories);
+        setStatuses(nextStatuses);
+        setExistingArticle(article);
+        setFormValues(getInitialFormValues(article, currentUser?.name));
+      } catch (error) {
+        toast.error("Unable to load article form", {
+          description: getApiErrorMessage(error),
+        });
+
+        if (isEditing) navigate("/admin/articles", { replace: true });
+      } finally {
+        if (shouldUpdate) setIsLoading(false);
+      }
     }
-  }, [existingArticle, isEditing, navigate]);
+
+    loadFormData();
+
+    return () => {
+      shouldUpdate = false;
+    };
+  }, [currentUser?.name, id, isEditing, navigate]);
 
   function handleInputChange(event) {
     const { name, value } = event.target;
 
-    setFormValues((values) => ({
-      ...values,
-      [name]: value,
-    }));
-    setFormErrors((errors) => ({
-      ...errors,
-      [name]: "",
-    }));
+    setFormValues((values) => ({ ...values, [name]: value }));
+    setFormErrors((errors) => ({ ...errors, [name]: "" }));
   }
 
   function handleCategoryChange(value) {
-    setFormValues((values) => ({
-      ...values,
-      category: value,
-    }));
-    setFormErrors((errors) => ({
-      ...errors,
-      category: "",
-    }));
+    setFormValues((values) => ({ ...values, categoryId: value }));
+    setFormErrors((errors) => ({ ...errors, category: "" }));
   }
 
   function handleUploadClick() {
     fileInputRef.current?.click();
   }
 
-  function handleThumbnailChange(event) {
+  async function handleThumbnailChange(event) {
     const file = event.target.files?.[0];
 
     if (!file) return;
 
-    const reader = new FileReader();
+    setIsUploading(true);
 
-    reader.onload = () => {
-      setFormValues((values) => ({
-        ...values,
-        image: reader.result,
-      }));
-      setFormErrors((errors) => ({
-        ...errors,
-        image: "",
-      }));
-    };
-
-    reader.readAsDataURL(file);
+    try {
+      const imageUrl = await uploadImage(file, "post-image");
+      setFormValues((values) => ({ ...values, image: imageUrl }));
+      setFormErrors((errors) => ({ ...errors, image: "" }));
+      toast.success("Thumbnail uploaded");
+    } catch (error) {
+      toast.error("Unable to upload thumbnail", {
+        description: getApiErrorMessage(error),
+      });
+    } finally {
+      setIsUploading(false);
+      event.target.value = "";
+    }
   }
 
-  function saveArticle(status) {
+  async function saveArticle(status) {
     const errors = validateArticleForm(formValues);
 
     if (Object.keys(errors).length > 0) {
@@ -157,17 +178,38 @@ export function useAdminArticleForm() {
       return;
     }
 
+    const selectedStatus = statuses.find((item) => item.status === status);
+
+    if (!selectedStatus) {
+      toast.error("Unable to save article", {
+        description: `Status ${status} is not configured`,
+      });
+      return;
+    }
+
+    const publishedAt =
+      status === "published"
+        ? existingArticle?.publishedAt || new Date().toISOString()
+        : null;
     const payload = {
-      ...formValues,
-      status,
+      category_id: Number(formValues.categoryId),
+      content: formValues.content.trim(),
+      date: existingArticle?.isoDate || new Date().toISOString().slice(0, 10),
+      description: formValues.excerpt.trim(),
+      image: formValues.image,
+      published_at: publishedAt,
+      slug: existingArticle?.slug || createSlug(formValues.title),
+      status_id: selectedStatus.id,
+      title: formValues.title.trim(),
     };
 
-    if (isEditing) {
-      const result = updateArticle(id, payload);
+    setIsSaving(true);
 
-      if (!result.success) {
-        toast.error(result.error);
-        return;
+    try {
+      if (isEditing) {
+        await updateAdminArticle(id, payload);
+      } else {
+        await createAdminArticle(payload);
       }
 
       const toastMessage = getArticleSaveToast(status, isEditing);
@@ -175,38 +217,32 @@ export function useAdminArticleForm() {
         description: toastMessage.description,
       });
       navigate("/admin/articles");
-      return;
+    } catch (error) {
+      toast.error("Unable to save article", {
+        description: getApiErrorMessage(error),
+      });
+    } finally {
+      setIsSaving(false);
     }
-
-    createArticle(payload);
-    const toastMessage = getArticleSaveToast(status, isEditing);
-    toast.success(toastMessage.title, {
-      description: toastMessage.description,
-    });
-    navigate("/admin/articles");
   }
 
-  function handleSaveDraft() {
-    saveArticle("draft");
-  }
-
-  function handleSavePublish() {
-    saveArticle("published");
-  }
-
-  function handleDeleteConfirm() {
+  async function handleDeleteConfirm() {
     if (!existingArticle) return;
 
-    const result = deleteArticle(existingArticle.id);
+    setIsSaving(true);
 
-    if (!result.success) {
-      toast.error(result.error);
-      return;
+    try {
+      await deleteAdminArticle(existingArticle.id);
+      toast.success("Article deleted");
+      setIsDeleteOpen(false);
+      navigate("/admin/articles");
+    } catch (error) {
+      toast.error("Unable to delete article", {
+        description: getApiErrorMessage(error),
+      });
+    } finally {
+      setIsSaving(false);
     }
-
-    toast.success("Article deleted");
-    setIsDeleteOpen(false);
-    navigate("/admin/articles");
   }
 
   return {
@@ -215,15 +251,18 @@ export function useAdminArticleForm() {
     fileInputRef,
     formErrors,
     formValues,
-    isDeleteOpen,
-    isEditing,
     handleCategoryChange,
     handleDeleteConfirm,
     handleInputChange,
-    handleSaveDraft,
-    handleSavePublish,
+    handleSaveDraft: () => saveArticle("draft"),
+    handleSavePublish: () => saveArticle("published"),
     handleThumbnailChange,
     handleUploadClick,
+    isDeleteOpen,
+    isEditing,
+    isLoading,
+    isSaving,
+    isUploading,
     setIsDeleteOpen,
   };
 }

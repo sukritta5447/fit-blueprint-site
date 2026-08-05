@@ -7,10 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test --test-isolation=none"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",
+    "@supabase/supabase-js": "2.112.0",
     "@tailwindcss/vite": "^4.3.1",
     "axios": "^1.18.1",
     "class-variance-authority": "^0.7.1",

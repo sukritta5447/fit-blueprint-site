@@ -1,28 +1,22 @@
 export const adminLayoutClasses = {
-  page: "min-h-screen bg-[#f8f7f4] text-neutral-900",
-  shell: "flex min-h-screen w-full",
-  sidebar:
-    "flex w-[280px] shrink-0 flex-col border-r border-stone-200/80 bg-[#f8f7f4] px-8 py-10",
-  sidebarTitle: "text-sm font-semibold text-[#e8b892]",
-  sidebarNav: "space-y-1",
-  navLink:
-    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
-  navLinkActive: "bg-[#eeece9] text-neutral-950",
-  navLinkInactive: "text-neutral-400 hover:bg-white/70 hover:text-neutral-800",
-  content: "min-w-0 flex-1 bg-[#f8f7f4] px-10 py-8 md:px-14 md:py-10",
+  page: "min-h-screen bg-[#07060d] text-white",
+  shell: "flex min-h-screen w-full flex-col lg:flex-row",
+  sidebar: "flex w-full shrink-0 flex-col border-b border-violet-500/15 bg-[#0d0b18] px-6 py-6 lg:w-[280px] lg:border-b-0 lg:border-r lg:px-8 lg:py-9",
+  sidebarTitle: "text-sm font-semibold text-violet-400",
+  sidebarNav: "grid gap-1 sm:grid-cols-2 lg:block lg:space-y-1",
+  navLink: "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+  navLinkActive: "bg-violet-500/15 text-violet-300",
+  navLinkInactive: "text-slate-500 hover:bg-white/5 hover:text-white",
+  content: "min-w-0 flex-1 bg-[#07060d] px-5 py-8 md:px-10 md:py-10",
   pageHeader: "mb-6 flex flex-wrap items-center justify-between gap-4",
-  pageTitle: "text-2xl font-semibold tracking-tight text-neutral-950 md:text-3xl",
-  panel: "rounded-2xl bg-[#eeece9] px-6 py-6 md:px-8 md:py-8",
+  pageTitle: "text-2xl font-semibold uppercase tracking-tight text-white md:text-3xl",
+  panel: "rounded-2xl border border-violet-500/20 bg-[#121020] px-6 py-6 md:px-8 md:py-8",
   table: "w-full text-left text-sm",
-  tableHead: "border-b border-neutral-300 text-neutral-500",
-  tableRow: "border-b border-neutral-200 last:border-b-0",
-  actionButton:
-    "inline-flex items-center justify-center rounded-full border border-neutral-400 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-stone-50",
-  primaryButton:
-    "inline-flex items-center justify-center rounded-full bg-neutral-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-neutral-800",
-  dangerButton:
-    "inline-flex items-center justify-center rounded-full border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50",
-  emptyState: "py-12 text-center text-sm text-neutral-500",
-  badge:
-    "inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-neutral-700",
+  tableHead: "border-b border-violet-500/20 text-slate-500",
+  tableRow: "border-b border-violet-500/10 last:border-b-0",
+  actionButton: "inline-flex items-center justify-center rounded-xl border border-violet-500/25 bg-transparent px-4 py-2 text-sm font-semibold text-violet-300 transition hover:bg-violet-500/10",
+  primaryButton: "inline-flex items-center justify-center rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500",
+  dangerButton: "inline-flex items-center justify-center rounded-xl border border-red-500/30 bg-transparent px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10",
+  emptyState: "py-12 text-center text-sm text-slate-500",
+  badge: "inline-flex rounded-full bg-violet-500/15 px-3 py-1 text-xs font-semibold text-violet-300",
 };

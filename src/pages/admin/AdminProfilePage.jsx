@@ -3,12 +3,13 @@ import { User } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
+import { useMemberAuth } from "@/hooks/useMemberAuth";
+import { getApiErrorMessage } from "@/services/apiClient";
 import {
-  CURRENT_ADMIN_UPDATED_EVENT,
-  getCurrentAdmin,
-  getCurrentAdminProfile,
-  updateCurrentAdminProfile,
-} from "@/services/adminAuthStorage";
+  getAdminProfile,
+  updateAdminProfile,
+} from "@/services/adminProfileService";
+import { uploadImage } from "@/services/uploadService";
 import { adminProfilePageClasses } from "@/styles/adminProfilePage.styles";
 
 const BIO_MAX_LENGTH = 120;
@@ -43,23 +44,35 @@ function getInitialFormValues(adminProfile) {
 
 export function AdminProfilePage() {
   const fileInputRef = useRef(null);
-  const [currentAdmin, setCurrentAdminState] = useState(() => getCurrentAdmin());
+  const { currentUser } = useMemberAuth();
   const [formValues, setFormValues] = useState(() =>
-    getInitialFormValues(getCurrentAdminProfile()),
+    getInitialFormValues(currentUser),
   );
   const [formErrors, setFormErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    function syncAdminState() {
-      const admin = getCurrentAdmin();
-      setCurrentAdminState(admin);
-      setFormValues(getInitialFormValues(getCurrentAdminProfile()));
+    let shouldUpdate = true;
+
+    async function loadProfile() {
+      try {
+        const profile = await getAdminProfile();
+        if (shouldUpdate) setFormValues(getInitialFormValues(profile));
+      } catch (error) {
+        toast.error("Unable to load profile", {
+          description: getApiErrorMessage(error),
+        });
+      } finally {
+        if (shouldUpdate) setIsLoading(false);
+      }
     }
 
-    window.addEventListener(CURRENT_ADMIN_UPDATED_EVENT, syncAdminState);
+    loadProfile();
 
     return () => {
-      window.removeEventListener(CURRENT_ADMIN_UPDATED_EVENT, syncAdminState);
+      shouldUpdate = false;
     };
   }, []);
 
@@ -80,21 +93,28 @@ export function AdminProfilePage() {
     fileInputRef.current?.click();
   }
 
-  function handleProfilePictureChange(event) {
+  async function handleProfilePictureChange(event) {
     const file = event.target.files?.[0];
 
     if (!file) return;
 
-    const reader = new FileReader();
+    setIsUploading(true);
 
-    reader.onload = () => {
+    try {
+      const imageUrl = await uploadImage(file, "avatar");
       setFormValues((values) => ({
         ...values,
-        image: reader.result,
+        image: imageUrl,
       }));
-    };
-
-    reader.readAsDataURL(file);
+      toast.success("Profile picture uploaded");
+    } catch (error) {
+      toast.error("Unable to upload profile picture", {
+        description: getApiErrorMessage(error),
+      });
+    } finally {
+      setIsUploading(false);
+      event.target.value = "";
+    }
   }
 
   function validateForm() {
@@ -110,7 +130,7 @@ export function AdminProfilePage() {
     return errors;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const errors = validateForm();
@@ -120,24 +140,31 @@ export function AdminProfilePage() {
       return;
     }
 
-    const updatedAdmin = updateCurrentAdminProfile({
-      name: formValues.name,
-      username: formValues.username,
-      email: formValues.email,
-      bio: formValues.bio,
-      image: formValues.image,
-    });
+    try {
+      setIsSaving(true);
+      const updatedAdmin = await updateAdminProfile({
+        name: formValues.name,
+        username: formValues.username,
+        bio: formValues.bio,
+        image: formValues.image,
+      });
 
-    if (!updatedAdmin) return;
-
-    setCurrentAdminState(getCurrentAdmin());
-    setFormValues(getInitialFormValues(getCurrentAdminProfile()));
-    toast.success("Saved profile", {
-      description: "Your profile has been successfully updated",
-    });
+      setFormValues(getInitialFormValues(updatedAdmin));
+      toast.success("Saved profile", {
+        description: "Your profile has been successfully updated",
+      });
+    } catch (error) {
+      toast.error("Unable to save profile", {
+        description: getApiErrorMessage(error),
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  if (!currentAdmin) return null;
+  if (isLoading) {
+    return <p className="p-8 text-sm text-neutral-500">Loading profile...</p>;
+  }
 
   return (
     <div className={adminProfilePageClasses.page}>
@@ -145,6 +172,7 @@ export function AdminProfilePage() {
         <h1 className={adminProfilePageClasses.title}>Profile</h1>
         <button
           type="submit"
+          disabled={isSaving || isUploading}
           form="admin-profile-form"
           className={adminProfilePageClasses.saveButton}
         >
@@ -171,10 +199,11 @@ export function AdminProfilePage() {
           />
           <button
             type="button"
+            disabled={isUploading}
             className={adminProfilePageClasses.uploadButton}
             onClick={handleUploadClick}
           >
-            Upload profile picture
+            {isUploading ? "Uploading..." : "Upload profile picture"}
           </button>
         </div>
 
@@ -227,7 +256,7 @@ export function AdminProfilePage() {
               name="email"
               type="email"
               value={formValues.email}
-              onChange={handleInputChange}
+              readOnly
               className={adminProfilePageClasses.input}
             />
             {formErrors.email && (
