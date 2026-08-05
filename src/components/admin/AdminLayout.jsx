@@ -14,8 +14,12 @@ import {
 } from "lucide-react";
 
 import { useMemberAuth } from "@/hooks/useMemberAuth";
-import { signOutAdmin } from "@/services/adminAuthStorage";
-import { getUnreadNotificationCount } from "@/services/adminNotificationsStorage";
+import {
+  getAdminHomePath,
+  isContentAdminRole,
+  signOutAdmin,
+} from "@/services/adminAuthStorage";
+import { getUnreadAdminNotificationCount } from "@/services/adminNotificationsService";
 import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 import { adminLayoutClasses } from "@/styles/adminLayout.styles";
 import { cn } from "@/utils/utils";
@@ -23,17 +27,27 @@ import { cn } from "@/utils/utils";
 const adminNavItems = [
   { label: "Members", to: "/admin/members", icon: Users },
   { label: "Administrators", to: "/admin/admins", icon: ShieldCheck },
-  { label: "Article management", to: "/admin/articles", icon: FileText },
-  { label: "Category management", to: "/admin/categories", icon: FolderOpen },
+  {
+    contentAdminOnly: true,
+    label: "Article management",
+    to: "/admin/articles",
+    icon: FileText,
+  },
+  {
+    contentAdminOnly: true,
+    label: "Category management",
+    to: "/admin/categories",
+    icon: FolderOpen,
+  },
   { label: "Profile", to: "/admin/profile", icon: User },
   { label: "Notification", to: "/admin/notifications", icon: Bell },
   { label: "Reset password", to: "/admin/reset-password", icon: RotateCcw },
 ];
 
-function AdminLogo() {
+function AdminLogo({ homePath }) {
   return (
     <Link
-      to="/admin/articles"
+      to={homePath}
       className="text-xl font-semibold tracking-[0.08em] text-white"
     >
       JB <span className="text-violet-400">FIT BLUEPRINT</span>
@@ -119,19 +133,30 @@ export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser: currentAdmin } = useMemberAuth();
-  const [unreadCount, setUnreadCount] = useState(() =>
-    getUnreadNotificationCount(),
-  );
+  const [unreadCount, setUnreadCount] = useState(0);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const visibleNavItems = adminNavItems.filter(
+    (item) =>
+      !item.contentAdminOnly || isContentAdminRole(currentAdmin?.role),
+  );
 
   useEffect(() => {
-    function syncUnreadCount() {
-      setUnreadCount(getUnreadNotificationCount());
+    let shouldUpdate = true;
+
+    async function syncUnreadCount() {
+      try {
+        const count = await getUnreadAdminNotificationCount();
+        if (shouldUpdate) setUnreadCount(count);
+      } catch (error) {
+        console.error("Error fetching unread notifications:", error);
+      }
     }
 
+    syncUnreadCount();
     window.addEventListener(CONTENT_UPDATED_EVENT, syncUnreadCount);
 
     return () => {
+      shouldUpdate = false;
       window.removeEventListener(CONTENT_UPDATED_EVENT, syncUnreadCount);
     };
   }, []);
@@ -155,14 +180,14 @@ export function AdminLayout() {
           aria-label="Admin navigation"
         >
           <div>
-            <AdminLogo />
+            <AdminLogo homePath={getAdminHomePath(currentAdmin.role)} />
             <p className={`${adminLayoutClasses.sidebarTitle} mt-1`}>
               Admin panel
             </p>
           </div>
 
           <nav className={`${adminLayoutClasses.sidebarNav} mt-8 flex-1`}>
-            {adminNavItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <AdminNavLink
                 key={item.to}
                 item={item}

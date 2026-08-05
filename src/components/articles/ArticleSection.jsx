@@ -115,16 +115,25 @@ export function ArticleSection({
   onSearchKeywordChange,
   searchResults = [],
 }) {
-  const [categories, setCategories] = useState(() => getPublicCategories())
+  const [categories, setCategories] = useState(['Highlight'])
 
   useEffect(() => {
-    function syncCategories() {
-      setCategories(getPublicCategories())
+    let shouldUpdate = true
+
+    async function syncCategories() {
+      try {
+        const nextCategories = await getPublicCategories()
+        if (shouldUpdate) setCategories(nextCategories)
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
     }
 
+    syncCategories()
     window.addEventListener(CONTENT_UPDATED_EVENT, syncCategories)
 
     return () => {
+      shouldUpdate = false
       window.removeEventListener(CONTENT_UPDATED_EVENT, syncCategories)
     }
   }, [])

@@ -3,18 +3,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useMemberAuth } from "@/hooks/useMemberAuth";
 import {
-  CURRENT_ADMIN_UPDATED_EVENT,
-  clearCurrentAdmin,
-  getCurrentAdmin,
   isAdminRole,
 } from "@/services/adminAuthStorage";
 import {
+  getAdminNotifications,
   getNotificationViewPath,
-  getStoredNotifications,
-  getUnreadNotificationCount,
-  markAllNotificationsAsRead,
-  markNotificationAsRead,
-} from "@/services/adminNotificationsStorage";
+  markAdminNotificationAsRead,
+  markAllAdminNotificationsAsRead,
+} from "@/services/adminNotificationsService";
 import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 import {
   MEMBER_NOTIFICATIONS_UPDATED_EVENT,
@@ -31,15 +27,16 @@ export function useNavBarState() {
   const navigate = useNavigate();
   const { currentUser } = useMemberAuth();
   const [, refreshAuthState] = useState(0);
+  const [adminNotifications, setAdminNotifications] = useState([]);
+  const [adminUnreadCount, setAdminUnreadCount] = useState(0);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
-  const currentAdmin = getCurrentAdmin();
   const isAdmin = isAdminRole(currentUser?.role);
-  const activeAccount = isAdmin ? currentAdmin || currentUser : currentUser;
+  const activeAccount = currentUser;
   const notifications = isAdmin
-    ? getStoredNotifications()
+    ? adminNotifications
     : getStoredMemberNotifications();
   const unreadCount = isAdmin
-    ? getUnreadNotificationCount()
+    ? adminUnreadCount
     : getUnreadMemberNotificationCount();
   const returnPath = `${location.pathname}${location.search}`;
 
@@ -48,22 +45,36 @@ export function useNavBarState() {
   }
 
   useEffect(() => {
-    window.addEventListener(CURRENT_ADMIN_UPDATED_EVENT, refreshNavState);
-    window.addEventListener(CONTENT_UPDATED_EVENT, refreshNavState);
+    async function syncAdminNotifications() {
+      if (!isAdmin) return;
+
+      try {
+        const data = await getAdminNotifications();
+        setAdminNotifications(data.notifications);
+        setAdminUnreadCount(
+          data.notifications.filter((notification) => !notification.read)
+            .length,
+        );
+      } catch (error) {
+        console.error("Error fetching admin notifications:", error);
+      }
+    }
+
+    syncAdminNotifications();
+    window.addEventListener(CONTENT_UPDATED_EVENT, syncAdminNotifications);
     window.addEventListener(
       MEMBER_NOTIFICATIONS_UPDATED_EVENT,
       refreshNavState,
     );
 
     return () => {
-      window.removeEventListener(CURRENT_ADMIN_UPDATED_EVENT, refreshNavState);
-      window.removeEventListener(CONTENT_UPDATED_EVENT, refreshNavState);
+      window.removeEventListener(CONTENT_UPDATED_EVENT, syncAdminNotifications);
       window.removeEventListener(
         MEMBER_NOTIFICATIONS_UPDATED_EVENT,
         refreshNavState,
       );
     };
-  }, []);
+  }, [isAdmin]);
 
   function getLinkState(to) {
     if (location.pathname === to) return undefined;
@@ -84,16 +95,21 @@ export function useNavBarState() {
       if (currentUser) {
         await clearCurrentUser();
       }
-      clearCurrentAdmin();
     } finally {
       setIsLogoutConfirmOpen(false);
       refreshNavState();
     }
   }
 
-  function handleNotificationClick(notification) {
+  async function handleNotificationClick(notification) {
     if (isAdmin) {
-      markNotificationAsRead(notification.id);
+      await markAdminNotificationAsRead(notification.id);
+      setAdminNotifications((items) =>
+        items.map((item) =>
+          item.id === notification.id ? { ...item, read: true } : item,
+        ),
+      );
+      setAdminUnreadCount((count) => Math.max(0, count - 1));
     } else {
       markMemberNotificationAsRead(notification.id);
     }
@@ -109,9 +125,13 @@ export function useNavBarState() {
     }
   }
 
-  function handleMarkAllNotificationsAsRead() {
+  async function handleMarkAllNotificationsAsRead() {
     if (isAdmin) {
-      markAllNotificationsAsRead();
+      await markAllAdminNotificationsAsRead();
+      setAdminNotifications((items) =>
+        items.map((item) => ({ ...item, read: true })),
+      );
+      setAdminUnreadCount(0);
     } else {
       markAllMemberNotificationsAsRead();
     }

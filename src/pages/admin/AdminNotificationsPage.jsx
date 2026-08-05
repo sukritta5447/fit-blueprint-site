@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 import {
+  getAdminNotifications,
   getNotificationViewPath,
-  getStoredNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-} from "@/services/adminNotificationsStorage";
+  markAdminNotificationAsRead,
+  markAllAdminNotificationsAsRead,
+} from "@/services/adminNotificationsService";
+import { getApiErrorMessage } from "@/services/apiClient";
 import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 import { adminNotificationsPageClasses } from "@/styles/adminNotificationsPage.styles";
 import { getInitials } from "@/utils/utils";
@@ -30,34 +32,16 @@ function NotificationAvatar({ notification }) {
       className={`${adminNotificationsPageClasses.avatar} ${notification.userAvatarColor}`}
       aria-hidden="true"
     >
-      {getInitials(notification.userName)}
+      {getInitials(notification.title)}
     </span>
   );
 }
 
 function NotificationSummary({ notification }) {
-  if (notification.type === "like") {
-    return (
-      <p className={adminNotificationsPageClasses.summary}>
-        <span className={adminNotificationsPageClasses.userName}>
-          {notification.userName}
-        </span>{" "}
-        liked your article:{" "}
-        <span className={adminNotificationsPageClasses.articleTitle}>
-          {notification.articleTitle}
-        </span>
-      </p>
-    );
-  }
-
   return (
     <p className={adminNotificationsPageClasses.summary}>
       <span className={adminNotificationsPageClasses.userName}>
-        {notification.userName}
-      </span>{" "}
-      Commented on your article:{" "}
-      <span className={adminNotificationsPageClasses.articleTitle}>
-        {notification.articleTitle}
+        {notification.title}
       </span>
     </p>
   );
@@ -71,9 +55,9 @@ function NotificationItem({ notification, onView }) {
       <div className={adminNotificationsPageClasses.content}>
         <NotificationSummary notification={notification} />
 
-        {notification.type === "comment" && notification.commentText && (
+        {notification.message && (
           <p className={adminNotificationsPageClasses.quote}>
-            &ldquo;{notification.commentText}&rdquo;
+            {notification.message}
           </p>
         )}
 
@@ -94,30 +78,60 @@ function NotificationItem({ notification, onView }) {
 }
 
 export function AdminNotificationsPage() {
-  const [notifications, setNotifications] = useState(() =>
-    getStoredNotifications(),
-  );
+  const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    function syncNotifications() {
-      setNotifications(getStoredNotifications());
+    let shouldUpdate = true;
+
+    async function syncNotifications() {
+      try {
+        const data = await getAdminNotifications();
+        if (shouldUpdate) setNotifications(data.notifications);
+      } catch (error) {
+        toast.error("Unable to load notifications", {
+          description: getApiErrorMessage(error),
+        });
+      } finally {
+        if (shouldUpdate) setIsLoading(false);
+      }
     }
 
+    syncNotifications();
     window.addEventListener(CONTENT_UPDATED_EVENT, syncNotifications);
 
     return () => {
+      shouldUpdate = false;
       window.removeEventListener(CONTENT_UPDATED_EVENT, syncNotifications);
     };
   }, []);
 
-  function handleViewNotification(notificationId) {
-    markNotificationAsRead(notificationId);
-    setNotifications(getStoredNotifications());
+  async function handleViewNotification(notificationId) {
+    try {
+      await markAdminNotificationAsRead(notificationId);
+      setNotifications((items) =>
+        items.map((item) =>
+          item.id === notificationId ? { ...item, read: true } : item,
+        ),
+      );
+    } catch (error) {
+      toast.error("Unable to update notification", {
+        description: getApiErrorMessage(error),
+      });
+    }
   }
 
-  function handleMarkAllAsRead() {
-    markAllNotificationsAsRead();
-    setNotifications(getStoredNotifications());
+  async function handleMarkAllAsRead() {
+    try {
+      await markAllAdminNotificationsAsRead();
+      setNotifications((items) =>
+        items.map((item) => ({ ...item, read: true })),
+      );
+    } catch (error) {
+      toast.error("Unable to update notifications", {
+        description: getApiErrorMessage(error),
+      });
+    }
   }
 
   const hasUnread = notifications.some((notification) => !notification.read);
@@ -138,7 +152,11 @@ export function AdminNotificationsPage() {
         )}
       </header>
 
-      {notifications.length === 0 ? (
+      {isLoading ? (
+        <p className={adminNotificationsPageClasses.emptyState}>
+          Loading notifications...
+        </p>
+      ) : notifications.length === 0 ? (
         <p className={adminNotificationsPageClasses.emptyState}>
           No notifications yet.
         </p>

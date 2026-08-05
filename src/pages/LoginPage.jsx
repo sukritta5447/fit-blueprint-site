@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
 import { Input } from "@/components/ui/input";
-import { clearCurrentAdmin } from "@/services/adminAuthStorage";
 import { signInMember } from "@/services/memberAuthStorage";
 import { authPageClasses } from "@/styles/authPage.styles";
 
@@ -51,7 +50,6 @@ export function LoginPage() {
         email: formValues.email.trim().toLowerCase(),
         password: formValues.password,
       });
-      clearCurrentAdmin();
       navigate(returnPath, { replace: true });
     } catch {
       toast.error("Your password is incorrect or this email doesn’t exist", {

@@ -1,15 +1,6 @@
 import axios from "axios";
 
-import {
-  filterStoredArticles,
-  getStoredArticleById,
-  getStoredArticles,
-  hasCustomStoredArticles,
-  normalizeArticle,
-} from "@/services/articleStorage";
-import { getPublicCategories } from "@/services/categoryStorage";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL;
 
 function formatArticleDate(isoDate) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -42,9 +33,10 @@ function getSectionsFromContent(content) {
     });
 }
 
-function mapApiArticle(apiArticle) {
+export function mapApiArticle(apiArticle) {
   return {
     ...apiArticle,
+    author: apiArticle.author?.trim() || "JB Fit Blueprint",
     excerpt: apiArticle.description,
     isoDate: apiArticle.date,
     date: formatArticleDate(apiArticle.date),
@@ -52,39 +44,22 @@ function mapApiArticle(apiArticle) {
   };
 }
 
-function mapLocalArticle(article) {
-  const normalizedArticle = normalizeArticle(article);
-
-  return {
-    ...normalizedArticle,
-    sections:
-      normalizedArticle.sections ||
-      getSectionsFromContent(normalizedArticle.content),
-  };
+export async function getPublicCategories() {
+  const response = await axios.get(`${API_BASE_URL}/categories`);
+  return ["Highlight", ...response.data.data.map((category) => category.name)];
 }
-
-export { getPublicCategories };
 
 export async function getArticles({
   category = "Highlight",
   page = 1,
   limit = 6,
 } = {}) {
-  if (hasCustomStoredArticles()) {
-    const data = filterStoredArticles({ category, page, limit });
-
-    return {
-      ...data,
-      articles: data.articles.map(mapLocalArticle),
-    };
-  }
-
   const response = await axios.get(`${API_BASE_URL}/posts`, {
     params:
       category === "Highlight"
         ? { page, limit }
         : {
-            category,
+            category: category.toLowerCase().replace(/\s+/g, "-"),
             page,
             limit,
           },
@@ -99,26 +74,12 @@ export async function getArticles({
 }
 
 export async function getArticleById(id) {
-  if (hasCustomStoredArticles()) {
-    const article = getStoredArticleById(id);
-
-    if (!article) {
-      throw new Error("Article not found");
-    }
-
-    return mapLocalArticle(article);
-  }
-
   const response = await axios.get(`${API_BASE_URL}/posts/${id}`);
 
   return mapApiArticle(response.data);
 }
 
 export async function getAllArticlesForSearch() {
-  if (hasCustomStoredArticles()) {
-    return getStoredArticles().map(mapLocalArticle);
-  }
-
   const data = await getArticles({ limit: 100 });
   return data.articles;
 }

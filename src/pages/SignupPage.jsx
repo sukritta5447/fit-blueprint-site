@@ -7,7 +7,6 @@ import { SignupSuccessPanel } from "@/components/auth/SignupSuccessPanel";
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
 import { initialSignupFormValues } from "@/data/signupForm";
-import { clearCurrentAdmin } from "@/services/adminAuthStorage";
 import { signUpMember } from "@/services/memberAuthStorage";
 import { authPageClasses } from "@/styles/authPage.styles";
 import { validateSignupForm } from "@/utils/signupValidation";
@@ -93,7 +92,6 @@ export function SignupPage() {
         password: formValues.password,
       });
 
-      clearCurrentAdmin();
       setNeedsEmailConfirmation(result.needsEmailConfirmation);
       setFormErrors({});
       setIsRegistrationSuccess(true);
