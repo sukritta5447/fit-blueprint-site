@@ -5,12 +5,14 @@ import { articleCardClasses } from "@/styles/articleCard.styles";
 import { getInitials } from "@/utils/utils";
 
 function ArticleMeta({ author, date, isoDate }) {
+  const displayAuthor = author?.trim() || "JB Fit Blueprint";
+
   return (
     <div className={articleCardClasses.meta}>
       <span className="grid size-6 place-items-center rounded-full bg-violet-500/20 text-[10px] text-violet-300">
-        {getInitials(author)}
+        {getInitials(displayAuthor)}
       </span>
-      <span>{author}</span>
+      <span>{displayAuthor}</span>
       <span className="size-1 rounded-full bg-violet-500/30" />
       <time dateTime={isoDate}>{date}</time>
     </div>

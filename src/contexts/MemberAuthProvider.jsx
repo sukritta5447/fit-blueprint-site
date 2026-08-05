@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { MemberAuthContext } from "@/contexts/memberAuthContext";
 import { supabase } from "@/lib/supabase";
-import { syncCurrentAdminFromUser } from "@/services/adminAuthStorage";
 import { mapSupabaseUser } from "@/services/memberAuthStorage";
 
 export function MemberAuthProvider({ children }) {
@@ -15,7 +14,6 @@ export function MemberAuthProvider({ children }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!isMounted) return;
 
-      syncCurrentAdminFromUser(session?.user);
       setCurrentUser(mapSupabaseUser(session?.user));
       setIsAuthLoading(false);
     });
@@ -25,7 +23,6 @@ export function MemberAuthProvider({ children }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!isMounted) return;
 
-      syncCurrentAdminFromUser(session?.user);
       setCurrentUser(mapSupabaseUser(session?.user));
       setIsAuthLoading(false);
     });

@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  deleteArticle,
-  getStoredArticles,
-} from "@/services/articleStorage";
-import { getStoredCategories } from "@/services/categoryStorage";
-import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
+  deleteAdminArticle,
+  getAdminArticles,
+  getAdminCategories,
+} from "@/services/adminContentService";
+import { getApiErrorMessage } from "@/services/apiClient";
 import {
   ARTICLE_STATUS_OPTIONS,
   adminArticlesPageClasses,
@@ -50,29 +50,37 @@ function ArticleStatus({ status }) {
 }
 
 export function AdminArticlesPage() {
-  const [articles, setArticles] = useState(() => getStoredArticles());
-  const [categories, setCategories] = useState(() =>
-    getStoredCategories().filter((category) => category !== "Highlight"),
-  );
+  const [articles, setArticles] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [articleToDelete, setArticleToDelete] = useState(null);
 
-  useEffect(() => {
-    function syncArticles() {
-      setArticles(getStoredArticles());
-      setCategories(
-        getStoredCategories().filter((category) => category !== "Highlight"),
-      );
+  const loadContent = useCallback(async () => {
+    await Promise.resolve();
+    setIsLoading(true);
+
+    try {
+      const [nextArticles, nextCategories] = await Promise.all([
+        getAdminArticles(),
+        getAdminCategories(),
+      ]);
+      setArticles(nextArticles);
+      setCategories(nextCategories);
+    } catch (error) {
+      toast.error("Unable to load articles", {
+        description: getApiErrorMessage(error),
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    window.addEventListener(CONTENT_UPDATED_EVENT, syncArticles);
-
-    return () => {
-      window.removeEventListener(CONTENT_UPDATED_EVENT, syncArticles);
-    };
   }, []);
+
+  useEffect(() => {
+    Promise.resolve().then(loadContent);
+  }, [loadContent]);
 
   const filteredArticles = useMemo(() => {
     const keyword = searchKeyword.trim().toLowerCase();
@@ -94,19 +102,19 @@ export function AdminArticlesPage() {
     });
   }, [articles, searchKeyword, selectedCategory, selectedStatus]);
 
-  function handleDeleteConfirm() {
+  async function handleDeleteConfirm() {
     if (!articleToDelete) return;
 
-    const result = deleteArticle(articleToDelete.id);
-
-    if (!result.success) {
-      toast.error(result.error);
-      return;
+    try {
+      await deleteAdminArticle(articleToDelete.id);
+      toast.success("Article deleted");
+      setArticleToDelete(null);
+      await loadContent();
+    } catch (error) {
+      toast.error("Unable to delete article", {
+        description: getApiErrorMessage(error),
+      });
     }
-
-    toast.success("Article deleted");
-    setArticleToDelete(null);
-    setArticles(getStoredArticles());
   }
 
   return (
@@ -160,8 +168,8 @@ export function AdminArticlesPage() {
               <SelectContent>
                 <SelectItem value="all">Category</SelectItem>
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                  <SelectItem key={category.id} value={category.name}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -170,7 +178,11 @@ export function AdminArticlesPage() {
         </div>
 
         <div className={adminArticlesPageClasses.tableCard}>
-          {filteredArticles.length === 0 ? (
+          {isLoading ? (
+            <p className={adminArticlesPageClasses.emptyState}>
+              Loading articles...
+            </p>
+          ) : filteredArticles.length === 0 ? (
             <p className={adminArticlesPageClasses.emptyState}>
               No articles found.
             </p>

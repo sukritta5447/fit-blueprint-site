@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
 import { AdminDeleteCategoryDialog } from "@/components/admin/AdminDeleteCategoryDialog";
 import {
-  createCategory,
-  deleteCategory,
-  getCategoryArticleCount,
-  getStoredCategories,
-  updateCategory,
-} from "@/services/categoryStorage";
-import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
+  createAdminCategory,
+  deleteAdminCategory,
+  getAdminArticles,
+  getAdminCategories,
+  updateAdminCategory,
+} from "@/services/adminContentService";
+import { getApiErrorMessage } from "@/services/apiClient";
 import { adminLayoutClasses } from "@/styles/adminLayout.styles";
 import { cn } from "@/utils/utils";
 
@@ -83,65 +83,96 @@ function CategoryFormDialog({
 }
 
 export function AdminCategoriesPage() {
-  const [categories, setCategories] = useState(() => getStoredCategories());
+  const [categories, setCategories] = useState([]);
+  const [articles, setArticles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState(null);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
 
-  useEffect(() => {
-    function syncCategories() {
-      setCategories(getStoredCategories());
+  const loadContent = useCallback(async () => {
+    await Promise.resolve();
+    setIsLoading(true);
+
+    try {
+      const [nextCategories, nextArticles] = await Promise.all([
+        getAdminCategories(),
+        getAdminArticles(),
+      ]);
+      setCategories(nextCategories);
+      setArticles(nextArticles);
+    } catch (error) {
+      toast.error("Unable to load categories", {
+        description: getApiErrorMessage(error),
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    window.addEventListener(CONTENT_UPDATED_EVENT, syncCategories);
-
-    return () => {
-      window.removeEventListener(CONTENT_UPDATED_EVENT, syncCategories);
-    };
   }, []);
 
-  function handleCreateCategory(name) {
-    const result = createCategory(name);
+  useEffect(() => {
+    Promise.resolve().then(loadContent);
+  }, [loadContent]);
 
-    if (!result.success) {
-      toast.error(result.error);
-      return;
-    }
-
-    toast.success("Category created");
-    setIsCreateOpen(false);
-    setCategories(getStoredCategories());
+  function getCategoryArticleCount(categoryId) {
+    return articles.filter(
+      (article) => article.categoryId === String(categoryId),
+    ).length;
   }
 
-  function handleUpdateCategory(name) {
-    const result = updateCategory(categoryToEdit, name);
+  function createSlug(name) {
+    const slug = name
+      .trim()
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
 
-    if (!result.success) {
-      toast.error(result.error);
-      return;
-    }
-
-    toast.success("Category updated");
-    setCategoryToEdit(null);
-    setCategories(getStoredCategories());
+    return slug || `category-${Date.now()}`;
   }
 
-  function handleDeleteCategory(replacementCategory) {
-    const result = deleteCategory(categoryToDelete, replacementCategory);
-
-    if (!result.success) {
-      toast.error(result.error);
-      return;
+  async function handleCreateCategory(name) {
+    try {
+      await createAdminCategory({ name: name.trim(), slug: createSlug(name) });
+      toast.success("Category created");
+      setIsCreateOpen(false);
+      await loadContent();
+    } catch (error) {
+      toast.error("Unable to create category", {
+        description: getApiErrorMessage(error),
+      });
     }
-
-    toast.success("Category deleted");
-    setCategoryToDelete(null);
-    setCategories(getStoredCategories());
   }
 
-  const editableCategories = categories.filter(
-    (category) => category !== "Highlight",
-  );
+  async function handleUpdateCategory(name) {
+    try {
+      await updateAdminCategory(categoryToEdit.id, {
+        name: name.trim(),
+        slug: createSlug(name),
+      });
+      toast.success("Category updated");
+      setCategoryToEdit(null);
+      await loadContent();
+    } catch (error) {
+      toast.error("Unable to update category", {
+        description: getApiErrorMessage(error),
+      });
+    }
+  }
+
+  async function handleDeleteCategory() {
+    try {
+      await deleteAdminCategory(categoryToDelete.id);
+      toast.success("Category deleted");
+      setCategoryToDelete(null);
+      await loadContent();
+    } catch (error) {
+      toast.error("Unable to delete category", {
+        description: getApiErrorMessage(error),
+      });
+    }
+  }
 
   return (
     <>
@@ -157,7 +188,9 @@ export function AdminCategoriesPage() {
       </header>
 
       <section className={adminLayoutClasses.panel}>
-        {editableCategories.length === 0 ? (
+        {isLoading ? (
+          <p className={adminLayoutClasses.emptyState}>Loading categories...</p>
+        ) : categories.length === 0 ? (
           <p className={adminLayoutClasses.emptyState}>No categories yet.</p>
         ) : (
           <div className="overflow-x-auto">
@@ -170,13 +203,13 @@ export function AdminCategoriesPage() {
                 </tr>
               </thead>
               <tbody>
-                {editableCategories.map((category) => (
-                  <tr key={category} className={adminLayoutClasses.tableRow}>
+                {categories.map((category) => (
+                  <tr key={category.id} className={adminLayoutClasses.tableRow}>
                     <td className="px-3 py-4 font-medium text-white">
-                      {category}
+                      {category.name}
                     </td>
                     <td className="px-3 py-4 text-neutral-500">
-                      {getCategoryArticleCount(category)}
+                      {getCategoryArticleCount(category.id)}
                     </td>
                     <td className="px-3 py-4 text-right">
                       <div className="flex flex-wrap justify-end gap-2">
@@ -197,7 +230,21 @@ export function AdminCategoriesPage() {
                             adminLayoutClasses.dangerButton,
                             "gap-2",
                           )}
-                          onClick={() => setCategoryToDelete(category)}
+                          onClick={() => {
+                            const articleCount = getCategoryArticleCount(
+                              category.id,
+                            );
+
+                            if (articleCount > 0) {
+                              toast.error("Category is in use", {
+                                description:
+                                  "Move or delete its articles before deleting this category.",
+                              });
+                              return;
+                            }
+
+                            setCategoryToDelete(category);
+                          }}
                         >
                           <Trash2 size={14} />
                           Delete
@@ -230,7 +277,7 @@ export function AdminCategoriesPage() {
       {categoryToEdit && (
         <CategoryFormDialog
           title="Edit category"
-          initialValue={categoryToEdit}
+          initialValue={categoryToEdit.name}
           submitLabel="Save"
           onCancel={() => setCategoryToEdit(null)}
           onSubmit={handleUpdateCategory}
@@ -239,11 +286,9 @@ export function AdminCategoriesPage() {
 
       {categoryToDelete && (
         <AdminDeleteCategoryDialog
-          categoryName={categoryToDelete}
-          articleCount={getCategoryArticleCount(categoryToDelete)}
-          replacementOptions={editableCategories.filter(
-            (category) => category !== categoryToDelete,
-          )}
+          categoryName={categoryToDelete.name}
+          articleCount={0}
+          replacementOptions={[]}
           onCancel={() => setCategoryToDelete(null)}
           onConfirm={handleDeleteCategory}
         />

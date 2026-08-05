@@ -13,6 +13,7 @@ export function useArticles() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export function useArticles() {
 
     async function loadArticles() {
       setIsLoading(true);
+      setError("");
 
       try {
         const data = await getArticles({
@@ -79,6 +81,14 @@ export function useArticles() {
         setHasMore(data.currentPage < data.totalPages);
       } catch (error) {
         console.error("Error fetching articles:", error);
+
+        if (shouldUpdate) {
+          setError(
+            error.response?.data?.message ||
+              error.response?.data?.error ||
+              "Unable to load articles. Please try again.",
+          );
+        }
       } finally {
         if (shouldUpdate) {
           setIsLoading(false);
@@ -103,6 +113,13 @@ export function useArticles() {
   function handleLoadMore() {
     if (isLoading || !hasMore) return;
     setPage((currentPage) => currentPage + 1);
+  }
+
+  function handleRetry() {
+    setArticles([]);
+    setPage(1);
+    setHasMore(true);
+    setRefreshKey((currentKey) => currentKey + 1);
   }
 
   const normalizedSearchKeyword = searchKeyword.trim().toLowerCase();
@@ -130,8 +147,10 @@ export function useArticles() {
     visibleArticles,
     searchResults,
     isLoading,
+    error,
     hasMore: normalizedSearchKeyword ? false : hasMore,
     handleSelectCategory,
     handleLoadMore,
+    handleRetry,
   };
 }

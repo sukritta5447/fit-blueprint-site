@@ -12,6 +12,9 @@ export function AdminArticleFormPage() {
     formValues,
     isDeleteOpen,
     isEditing,
+    isLoading,
+    isSaving,
+    isUploading,
     handleCategoryChange,
     handleDeleteConfirm,
     handleInputChange,
@@ -22,7 +25,9 @@ export function AdminArticleFormPage() {
     setIsDeleteOpen,
   } = useAdminArticleForm();
 
-  if (isEditing && !existingArticle) return null;
+  if (isLoading || (isEditing && !existingArticle)) {
+    return <p className="p-8 text-sm text-neutral-500">Loading article...</p>;
+  }
 
   return (
     <div className={adminArticleFormPageClasses.page}>
@@ -34,6 +39,7 @@ export function AdminArticleFormPage() {
         <div className={adminArticleFormPageClasses.headerActions}>
           <button
             type="button"
+            disabled={isSaving || isUploading}
             className={adminArticleFormPageClasses.outlineButton}
             onClick={handleSaveDraft}
           >
@@ -41,6 +47,7 @@ export function AdminArticleFormPage() {
           </button>
           <button
             type="button"
+            disabled={isSaving || isUploading}
             className={adminArticleFormPageClasses.primaryButton}
             onClick={handleSavePublish}
           >
@@ -59,6 +66,7 @@ export function AdminArticleFormPage() {
           formErrors={formErrors}
           formValues={formValues}
           isEditing={isEditing}
+          isUploading={isUploading}
           onCategoryChange={handleCategoryChange}
           onDeleteClick={() => setIsDeleteOpen(true)}
           onInputChange={handleInputChange}

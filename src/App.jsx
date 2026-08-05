@@ -25,7 +25,11 @@ import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { ProgramPage } from "./pages/ProgramPage";
 import { SignupPage } from "./pages/SignupPage";
 import { useMemberAuth } from "./hooks/useMemberAuth";
-import { isAdminRole } from "./services/adminAuthStorage";
+import {
+  getAdminHomePath,
+  isAdminRole,
+  isContentAdminRole,
+} from "./services/adminAuthStorage";
 
 function AdminLoginRoute() {
   const { currentUser, isAuthLoading } = useMemberAuth();
@@ -33,10 +37,27 @@ function AdminLoginRoute() {
   if (isAuthLoading) return null;
 
   if (currentUser && isAdminRole(currentUser.role)) {
-    return <Navigate to="/admin/articles" replace />;
+    return <Navigate to={getAdminHomePath(currentUser.role)} replace />;
   }
 
   return <AdminLoginPage />;
+}
+
+function AdminHomeRoute() {
+  const { currentUser } = useMemberAuth();
+  return <Navigate to={getAdminHomePath(currentUser?.role)} replace />;
+}
+
+function AdminContentRoute({ children }) {
+  const { currentUser, isAuthLoading } = useMemberAuth();
+
+  if (isAuthLoading) return null;
+
+  if (!isContentAdminRole(currentUser?.role)) {
+    return <Navigate to="/admin/notifications" replace />;
+  }
+
+  return children;
 }
 
 function App() {
@@ -71,13 +92,41 @@ function App() {
             </AdminProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/admin/articles" replace />} />
+          <Route index element={<AdminHomeRoute />} />
           <Route path="members" element={<AdminMembersPage />} />
           <Route path="admins" element={<AdminAccountsPage />} />
-          <Route path="articles" element={<AdminArticlesPage />} />
-          <Route path="articles/new" element={<AdminArticleFormPage />} />
-          <Route path="articles/:id/edit" element={<AdminArticleFormPage />} />
-          <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route
+            path="articles"
+            element={
+              <AdminContentRoute>
+                <AdminArticlesPage />
+              </AdminContentRoute>
+            }
+          />
+          <Route
+            path="articles/new"
+            element={
+              <AdminContentRoute>
+                <AdminArticleFormPage />
+              </AdminContentRoute>
+            }
+          />
+          <Route
+            path="articles/:id/edit"
+            element={
+              <AdminContentRoute>
+                <AdminArticleFormPage />
+              </AdminContentRoute>
+            }
+          />
+          <Route
+            path="categories"
+            element={
+              <AdminContentRoute>
+                <AdminCategoriesPage />
+              </AdminContentRoute>
+            }
+          />
           <Route path="profile" element={<AdminProfilePage />} />
           <Route path="notifications" element={<AdminNotificationsPage />} />
           <Route path="reset-password" element={<AdminResetPasswordPage />} />

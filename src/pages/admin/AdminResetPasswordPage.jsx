@@ -1,18 +1,15 @@
-import { useState } from "react";
 import { toast } from "sonner";
 
 import { ResetPasswordConfirmDialog } from "@/components/auth/ResetPasswordConfirmDialog";
 import { ResetPasswordFields } from "@/components/auth/ResetPasswordFields";
 import { useResetPasswordForm } from "@/hooks/useResetPasswordForm";
-import {
-  getCurrentAdmin,
-  updateCurrentAdminPassword,
-} from "@/services/adminAuthStorage";
+import { useMemberAuth } from "@/hooks/useMemberAuth";
+import { updateCurrentAdminPassword } from "@/services/adminAuthStorage";
 import { adminLayoutClasses } from "@/styles/adminLayout.styles";
 import { adminResetPasswordPageClasses } from "@/styles/adminResetPasswordPage.styles";
 
 export function AdminResetPasswordPage() {
-  const [currentAdmin] = useState(() => getCurrentAdmin());
+  const { currentUser } = useMemberAuth();
   const {
     formValues,
     formErrors,
@@ -26,7 +23,7 @@ export function AdminResetPasswordPage() {
     onSuccess: () => toast.success("Password updated"),
   });
 
-  if (!currentAdmin) return null;
+  if (!currentUser) return null;
 
   return (
     <div className={adminResetPasswordPageClasses.page}>
