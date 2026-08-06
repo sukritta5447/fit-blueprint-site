@@ -29,3 +29,5 @@ dist-ssr
 
 # Codex instructions
 AGENTS.md
+.vercel
+.env*

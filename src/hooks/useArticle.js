@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { getArticleById } from "@/services/articlesService";
 import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 
-export function useArticle(id) {
+export function useArticle(id, authUserId) {
   const [article, setArticle] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -28,7 +29,12 @@ export function useArticle(id) {
       setHasError(false);
 
       try {
-        const data = await getArticleById(id);
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const data = await getArticleById(id, {
+          accessToken: session?.access_token,
+        });
 
         if (shouldUpdate) {
           setArticle(data);
@@ -51,7 +57,13 @@ export function useArticle(id) {
     return () => {
       shouldUpdate = false;
     };
-  }, [id, refreshKey]);
+  }, [authUserId, id, refreshKey]);
 
-  return { article, isLoading, hasError };
+  const updateArticle = useCallback((updater) => {
+    setArticle((currentArticle) =>
+      typeof updater === "function" ? updater(currentArticle) : updater,
+    );
+  }, []);
+
+  return { article, isLoading, hasError, updateArticle };
 }
