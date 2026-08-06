@@ -73,8 +73,12 @@ export async function getArticles({
   };
 }
 
-export async function getArticleById(id) {
-  const response = await axios.get(`${API_BASE_URL}/posts/${id}`);
+export async function getArticleById(id, { accessToken } = {}) {
+  const response = await axios.get(`${API_BASE_URL}/posts/${id}`, {
+    headers: accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : undefined,
+  });
 
   return mapApiArticle(response.data);
 }
