@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Copy, Smile } from "lucide-react";
 import { toast } from "sonner";
@@ -6,8 +6,15 @@ import { toast } from "sonner";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
-import { featuredAuthor, mockComments } from "@/data/articles";
+import { featuredAuthor } from "@/data/articles";
 import { useArticle } from "@/hooks/useArticle";
+import { useMemberAuth } from "@/hooks/useMemberAuth";
+import {
+  createArticleComment,
+  getArticleComments,
+  setArticleLike,
+} from "@/services/articleEngagementService";
+import { getApiErrorMessage } from "@/services/apiClient";
 import { getInitials } from "@/utils/utils";
 import { pageClasses } from "@/styles/articlePage.styles";
 
@@ -114,7 +121,13 @@ function AuthorCard({ className = "" }) {
   );
 }
 
-function ShareBar({ articleUrl, onAuthRequired }) {
+function ShareBar({
+  articleUrl,
+  isLiked,
+  isLiking,
+  likesCount,
+  onLike,
+}) {
   const encodedArticleUrl = encodeURIComponent(articleUrl);
   const socialItems = [
     {
@@ -153,11 +166,15 @@ function ShareBar({ articleUrl, onAuthRequired }) {
     <div className={pageClasses.shareBar}>
       <button
         type="button"
-        className={pageClasses.likeBtn}
-        onClick={onAuthRequired}
+        className={`${pageClasses.likeBtn} ${
+          isLiked ? "border-violet-400 bg-violet-500/15 text-violet-200" : ""
+        }`}
+        aria-pressed={isLiked}
+        disabled={isLiking}
+        onClick={onLike}
       >
         <Smile size={18} strokeWidth={1.8} />
-        <span>321</span>
+        <span>{likesCount}</span>
       </button>
 
       <div className={pageClasses.shareActions}>
@@ -187,7 +204,33 @@ function ShareBar({ articleUrl, onAuthRequired }) {
   );
 }
 
-function CommentSection({ onAuthRequired }) {
+function formatCommentDate(value) {
+  if (!value) return "";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+function CommentSection({
+  comments,
+  hasError,
+  isLoading,
+  isSubmitting,
+  onSubmit,
+}) {
+  const [commentText, setCommentText] = useState("");
+
+  async function handleSubmit() {
+    const content = commentText.trim();
+    if (!content || isSubmitting) return;
+
+    const wasCreated = await onSubmit(content);
+    if (wasCreated) setCommentText("");
+  }
+
   return (
     <section className="mt-10">
       <h2 className="text-base font-semibold text-white">Comment</h2>
@@ -197,35 +240,60 @@ function CommentSection({ onAuthRequired }) {
           rows={4}
           placeholder="What are your thoughts?"
           className={pageClasses.commentInput}
+          disabled={isSubmitting}
+          value={commentText}
+          onChange={(event) => setCommentText(event.target.value)}
         />
         <div className="flex justify-end">
           <button
             type="button"
             className={pageClasses.sendBtn}
-            onClick={onAuthRequired}
+            disabled={!commentText.trim() || isSubmitting}
+            onClick={handleSubmit}
           >
-            Send
+            {isSubmitting ? "Sending..." : "Send"}
           </button>
         </div>
       </div>
 
       <ul className="mt-8 space-y-6">
-        {mockComments.map((comment) => (
+        {isLoading && (
+          <li className="text-sm text-slate-500">Loading comments...</li>
+        )}
+        {hasError && !isLoading && (
+          <li className="text-sm text-red-300">Could not load comments.</li>
+        )}
+        {!isLoading && !hasError && comments.length === 0 && (
+          <li className="text-sm text-slate-500">
+            No comments yet. Be the first to share your thoughts.
+          </li>
+        )}
+        {comments.map((comment) => (
           <li key={comment.id} className="flex gap-3">
-            <span className={`${pageClasses.commentAvatar} ${comment.color}`}>
-              {getInitials(comment.name)}
-            </span>
+            {comment.author_avatar_url ? (
+              <img
+                src={comment.author_avatar_url}
+                alt=""
+                className={`${pageClasses.commentAvatar} object-cover`}
+              />
+            ) : (
+              <span
+                className={`${pageClasses.commentAvatar} bg-violet-500/20 text-violet-200`}
+              >
+                {getInitials(comment.author_name)}
+              </span>
+            )}
             <div>
               <p>
                 <span className="text-sm font-semibold text-white">
-                  {comment.name}
+                  {comment.author_name || "Member"}
                 </span>
                 <span className="ml-2 text-xs text-slate-500">
-                  {comment.date}
+                  {formatCommentDate(comment.created_at)}
                 </span>
               </p>
               <p className="mt-1 text-sm leading-6 text-slate-400">
-                {comment.text}
+                {comment.content}
               </p>
             </div>
           </li>
@@ -304,8 +372,96 @@ function LoadingArticle() {
 
 export function ArticlePage() {
   const { id } = useParams();
-  const { article, isLoading, hasError } = useArticle(id);
+  const { currentUser, isAuthLoading } = useMemberAuth();
+  const { article, isLoading, hasError, updateArticle } = useArticle(
+    id,
+    currentUser?.id,
+  );
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [hasCommentsError, setHasCommentsError] = useState(false);
+  const [isCommentsLoading, setIsCommentsLoading] = useState(true);
+  const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
+
+  useEffect(() => {
+    let shouldUpdate = true;
+
+    async function loadComments() {
+      setIsCommentsLoading(true);
+      setHasCommentsError(false);
+
+      try {
+        const result = await getArticleComments(id);
+        if (shouldUpdate) setComments(result.data);
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+        if (shouldUpdate) setHasCommentsError(true);
+      } finally {
+        if (shouldUpdate) setIsCommentsLoading(false);
+      }
+    }
+
+    loadComments();
+
+    return () => {
+      shouldUpdate = false;
+    };
+  }, [id]);
+
+  async function handleLike() {
+    if (isAuthLoading || isLiking) return;
+
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    setIsLiking(true);
+
+    try {
+      const result = await setArticleLike(article.id, !article.is_liked);
+      updateArticle((currentArticle) => ({
+        ...currentArticle,
+        is_liked: result.liked,
+        likes_count: result.likes_count,
+      }));
+    } catch (error) {
+      toast.error("Could not update Like.", {
+        description: getApiErrorMessage(error),
+      });
+    } finally {
+      setIsLiking(false);
+    }
+  }
+
+  async function handleCommentSubmit(content) {
+    if (isAuthLoading) return false;
+
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return false;
+    }
+
+    setIsCommentSubmitting(true);
+
+    try {
+      const createdComment = await createArticleComment(article.id, content);
+      setComments((currentComments) => [
+        ...currentComments,
+        createdComment,
+      ]);
+      toast.success("Comment posted.");
+      return true;
+    } catch (error) {
+      toast.error("Could not post comment.", {
+        description: getApiErrorMessage(error),
+      });
+      return false;
+    } finally {
+      setIsCommentSubmitting(false);
+    }
+  }
 
   if (isLoading) return <LoadingArticle />;
   if (hasError || !article) return <NotFound />;
@@ -328,9 +484,18 @@ export function ArticlePage() {
               <AuthorCard className="mt-10 lg:hidden" />
               <ShareBar
                 articleUrl={articleUrl}
-                onAuthRequired={() => setIsAuthModalOpen(true)}
+                isLiked={Boolean(article.is_liked)}
+                isLiking={isLiking}
+                likesCount={article.likes_count ?? 0}
+                onLike={handleLike}
               />
-              <CommentSection onAuthRequired={() => setIsAuthModalOpen(true)} />
+              <CommentSection
+                comments={comments}
+                hasError={hasCommentsError}
+                isLoading={isCommentsLoading}
+                isSubmitting={isCommentSubmitting}
+                onSubmit={handleCommentSubmit}
+              />
             </div>
 
             <AuthorCard className="hidden lg:block" />

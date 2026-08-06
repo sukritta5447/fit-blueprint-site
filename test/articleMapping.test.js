@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import axios from "axios";
 
-import { mapApiArticle } from "../src/services/articlesService.js";
+import {
+  getArticleById,
+  mapApiArticle,
+} from "../src/services/articlesService.js";
 import { getInitials } from "../src/utils/utils.js";
 
 const apiArticle = {
@@ -22,6 +26,34 @@ test("mapApiArticle preserves a non-empty API author", () => {
   const article = mapApiArticle({ ...apiArticle, author: "Alex Mercer" });
 
   assert.equal(article.author, "Alex Mercer");
+});
+
+test("mapApiArticle preserves Like state returned by the API", () => {
+  const article = mapApiArticle({
+    ...apiArticle,
+    is_liked: true,
+    likes_count: 7,
+  });
+
+  assert.equal(article.is_liked, true);
+  assert.equal(article.likes_count, 7);
+});
+
+test("getArticleById forwards the Supabase access token", async (t) => {
+  let request;
+
+  t.mock.method(axios, "get", async (url, config) => {
+    request = { config, url };
+    return { data: apiArticle };
+  });
+
+  await getArticleById("12", { accessToken: "member-access-token" });
+
+  assert.match(request.url, /\/posts\/12$/);
+  assert.equal(
+    request.config.headers.Authorization,
+    "Bearer member-access-token",
+  );
 });
 
 test("getInitials handles missing and whitespace-only names", () => {
