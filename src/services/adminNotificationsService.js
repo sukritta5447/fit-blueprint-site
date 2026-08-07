@@ -11,6 +11,9 @@ function mapNotification(notification) {
     title: notification.title || "Notification",
     type: notification.type,
     userAvatarColor: "bg-stone-100 text-stone-700",
+    userImage: notification.actor_avatar_url || "",
+    userName: notification.actor_name || "System",
+    articleTitle: notification.post_title || "",
   };
 }
 

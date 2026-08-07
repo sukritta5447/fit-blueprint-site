@@ -11,7 +11,12 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <NavBar />
-      <main><Container><HeroSection /><LandingSections articles={visibleArticles} /></Container></main>
+      <main>
+        <HeroSection />
+        <Container>
+          <LandingSections articles={visibleArticles} />
+        </Container>
+      </main>
       <Footer />
     </div>
   );

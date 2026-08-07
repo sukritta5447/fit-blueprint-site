@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Copy, Smile } from "lucide-react";
+import { Copy, Heart, Smile } from "lucide-react";
 import { toast } from "sonner";
 
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
@@ -11,9 +11,13 @@ import { useArticle } from "@/hooks/useArticle";
 import { useMemberAuth } from "@/hooks/useMemberAuth";
 import {
   createArticleComment,
+  deleteArticleComment,
   getArticleComments,
+  setCommentLike,
   setArticleLike,
+  updateArticleComment,
 } from "@/services/articleEngagementService";
+import { isAdminRole } from "@/services/adminAuthStorage";
 import { getApiErrorMessage } from "@/services/apiClient";
 import { getInitials } from "@/utils/utils";
 import { pageClasses } from "@/styles/articlePage.styles";
@@ -216,12 +220,57 @@ function formatCommentDate(value) {
 
 function CommentSection({
   comments,
+  currentUser,
   hasError,
   isLoading,
   isSubmitting,
+  onLike,
   onSubmit,
+  onUpdate,
+  onDelete,
 }) {
   const [commentText, setCommentText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingText, setEditingText] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
+  const [likingCommentId, setLikingCommentId] = useState(null);
+
+  function canManageComment(comment) {
+    return (
+      currentUser &&
+      (comment.author_id === currentUser.id || isAdminRole(currentUser.role))
+    );
+  }
+
+  function startEditing(comment) {
+    setEditingCommentId(comment.id);
+    setEditingText(comment.content);
+  }
+
+  function cancelEditing() {
+    setEditingCommentId(null);
+    setEditingText("");
+  }
+
+  async function handleUpdate(commentId) {
+    const content = editingText.trim();
+    if (!content || isUpdating) return;
+
+    setIsUpdating(true);
+    const updatedComment = await onUpdate(commentId, content);
+    setIsUpdating(false);
+
+    if (updatedComment) cancelEditing();
+  }
+
+  async function handleDelete(commentId) {
+    if (deletingCommentId) return;
+
+    setDeletingCommentId(commentId);
+    await onDelete(commentId);
+    setDeletingCommentId(null);
+  }
 
   async function handleSubmit() {
     const content = commentText.trim();
@@ -229,6 +278,14 @@ function CommentSection({
 
     const wasCreated = await onSubmit(content);
     if (wasCreated) setCommentText("");
+  }
+
+  async function handleLike(comment) {
+    if (likingCommentId) return;
+
+    setLikingCommentId(comment.id);
+    await onLike(comment);
+    setLikingCommentId(null);
   }
 
   return (
@@ -283,7 +340,7 @@ function CommentSection({
                 {getInitials(comment.author_name)}
               </span>
             )}
-            <div>
+            <div className="min-w-0 flex-1">
               <p>
                 <span className="text-sm font-semibold text-white">
                   {comment.author_name || "Member"}
@@ -292,9 +349,56 @@ function CommentSection({
                   {formatCommentDate(comment.created_at)}
                 </span>
               </p>
-              <p className="mt-1 text-sm leading-6 text-slate-400">
-                {comment.content}
-              </p>
+              {editingCommentId === comment.id ? (
+                <div className="mt-2">
+                  <textarea
+                    rows={3}
+                    value={editingText}
+                    className={pageClasses.commentInput}
+                    disabled={isUpdating}
+                    onChange={(event) => setEditingText(event.target.value)}
+                  />
+                  <div className="mt-2 flex justify-end gap-2">
+                    <button type="button" className={pageClasses.commentActionButton} onClick={cancelEditing}>
+                      Cancel
+                    </button>
+                    <button type="button" className={pageClasses.commentActionButton} disabled={!editingText.trim() || isUpdating} onClick={() => handleUpdate(comment.id)}>
+                      {isUpdating ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-1 text-sm leading-6 text-slate-400">
+                  {comment.content}
+                </p>
+              )}
+              <button
+                type="button"
+                className={`mt-2 inline-flex items-center gap-1 text-xs transition ${
+                  comment.is_liked
+                    ? "text-pink-300"
+                    : "text-slate-500 hover:text-pink-300"
+                }`}
+                aria-pressed={Boolean(comment.is_liked)}
+                disabled={likingCommentId === comment.id}
+                onClick={() => handleLike(comment)}
+              >
+                <Heart
+                  size={14}
+                  fill={comment.is_liked ? "currentColor" : "none"}
+                />
+                <span>{comment.likes_count ?? 0}</span>
+              </button>
+              {canManageComment(comment) && editingCommentId !== comment.id && (
+                <div className="mt-2 flex gap-3">
+                  <button type="button" className={pageClasses.commentActionButton} onClick={() => startEditing(comment)}>
+                    Edit
+                  </button>
+                  <button type="button" className={pageClasses.commentDeleteButton} disabled={deletingCommentId === comment.id} onClick={() => handleDelete(comment.id)}>
+                    {deletingCommentId === comment.id ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              )}
             </div>
           </li>
         ))}
@@ -463,6 +567,70 @@ export function ArticlePage() {
     }
   }
 
+  async function handleCommentUpdate(commentId, content) {
+    try {
+      const updatedComment = await updateArticleComment(id, commentId, content);
+      setComments((currentComments) =>
+        currentComments.map((comment) =>
+          comment.id === commentId ? updatedComment : comment,
+        ),
+      );
+      toast.success("Comment updated.");
+      return updatedComment;
+    } catch (error) {
+      toast.error("Could not update comment.", {
+        description: getApiErrorMessage(error),
+      });
+      return null;
+    }
+  }
+
+  async function handleCommentLike(comment) {
+    if (isAuthLoading) return;
+
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    try {
+      const result = await setCommentLike(
+        article.id,
+        comment.id,
+        !comment.is_liked,
+      );
+      setComments((currentComments) =>
+        currentComments.map((currentComment) =>
+          currentComment.id === comment.id
+            ? {
+                ...currentComment,
+                is_liked: result.liked,
+                likes_count: result.likes_count,
+              }
+            : currentComment,
+        ),
+      );
+    } catch (error) {
+      toast.error("Could not update comment Like.", {
+        description: getApiErrorMessage(error),
+      });
+    }
+  }
+
+  async function handleCommentDelete(commentId) {
+    try {
+      await deleteArticleComment(id, commentId);
+      setComments((currentComments) =>
+        currentComments.filter((comment) => comment.id !== commentId),
+      );
+      toast.success("Comment deleted.");
+    } catch (error) {
+      toast.error("Could not delete comment.", {
+        description: getApiErrorMessage(error),
+      });
+    }
+  }
+
   if (isLoading) return <LoadingArticle />;
   if (hasError || !article) return <NotFound />;
 
@@ -491,10 +659,14 @@ export function ArticlePage() {
               />
               <CommentSection
                 comments={comments}
+                currentUser={currentUser}
                 hasError={hasCommentsError}
                 isLoading={isCommentsLoading}
                 isSubmitting={isCommentSubmitting}
+                onLike={handleCommentLike}
                 onSubmit={handleCommentSubmit}
+                onUpdate={handleCommentUpdate}
+                onDelete={handleCommentDelete}
               />
             </div>
 

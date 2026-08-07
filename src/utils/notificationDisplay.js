@@ -20,9 +20,15 @@ export function formatNavNotificationTime(isoDate) {
 }
 
 export function getNavNotificationActionText(notification) {
+  if (notification.message) return notification.message;
+
   switch (notification.type) {
     case "publish":
       return "Published new article.";
+    case "signup":
+      return "A new member signed up.";
+    case "comment_like":
+      return "Someone liked your comment.";
     case "comment_reply":
       return "Comment on the article you have commented on.";
     case "like":

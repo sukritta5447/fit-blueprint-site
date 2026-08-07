@@ -13,6 +13,8 @@ export const pageClasses = {
   socialBtn: "grid size-10 place-items-center rounded-xl text-base font-semibold text-white transition hover:brightness-110",
   commentInput: "mt-3 w-full rounded-xl border border-violet-500/20 bg-[#0b0913] px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500/30 disabled:cursor-not-allowed disabled:opacity-60",
   sendBtn: "mt-3 rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60",
+  commentActionButton: "rounded-lg px-2 py-1 text-xs font-medium text-violet-300 transition hover:bg-violet-500/10 disabled:cursor-not-allowed disabled:opacity-60",
+  commentDeleteButton: "rounded-lg px-2 py-1 text-xs font-medium text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60",
   commentAvatar: "grid size-8 shrink-0 place-items-center rounded-full text-[11px] font-semibold",
   authorCard: "rounded-2xl border border-violet-500/20 bg-[#121020] p-5 md:p-6 lg:sticky lg:top-24",
   modalOverlay: "fixed inset-0 z-50 grid place-items-center bg-black/70 px-5",

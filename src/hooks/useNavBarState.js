@@ -13,10 +13,8 @@ import {
 } from "@/services/adminNotificationsService";
 import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
 import {
-  MEMBER_NOTIFICATIONS_UPDATED_EVENT,
+  getMemberNotifications,
   getMemberNotificationViewPath,
-  getStoredMemberNotifications,
-  getUnreadMemberNotificationCount,
   markAllMemberNotificationsAsRead,
   markMemberNotificationAsRead,
 } from "@/services/memberNotificationsStorage";
@@ -29,15 +27,17 @@ export function useNavBarState() {
   const [, refreshAuthState] = useState(0);
   const [adminNotifications, setAdminNotifications] = useState([]);
   const [adminUnreadCount, setAdminUnreadCount] = useState(0);
+  const [memberNotifications, setMemberNotifications] = useState([]);
+  const [memberUnreadCount, setMemberUnreadCount] = useState(0);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const isAdmin = isAdminRole(currentUser?.role);
   const activeAccount = currentUser;
   const notifications = isAdmin
     ? adminNotifications
-    : getStoredMemberNotifications();
+    : memberNotifications;
   const unreadCount = isAdmin
     ? adminUnreadCount
-    : getUnreadMemberNotificationCount();
+    : memberUnreadCount;
   const returnPath = `${location.pathname}${location.search}`;
 
   function refreshNavState() {
@@ -45,36 +45,31 @@ export function useNavBarState() {
   }
 
   useEffect(() => {
-    async function syncAdminNotifications() {
-      if (!isAdmin) return;
+    async function syncNotifications() {
+      if (!currentUser) return;
 
       try {
-        const data = await getAdminNotifications();
-        setAdminNotifications(data.notifications);
-        setAdminUnreadCount(
-          data.notifications.filter((notification) => !notification.read)
-            .length,
-        );
+        if (isAdmin) {
+          const data = await getAdminNotifications();
+          setAdminNotifications(data.notifications);
+          setAdminUnreadCount(data.notifications.filter((notification) => !notification.read).length);
+        } else {
+          const memberData = await getMemberNotifications();
+          setMemberNotifications(memberData.notifications);
+          setMemberUnreadCount(memberData.notifications.filter((notification) => !notification.read).length);
+        }
       } catch (error) {
         console.error("Error fetching admin notifications:", error);
       }
     }
 
-    syncAdminNotifications();
-    window.addEventListener(CONTENT_UPDATED_EVENT, syncAdminNotifications);
-    window.addEventListener(
-      MEMBER_NOTIFICATIONS_UPDATED_EVENT,
-      refreshNavState,
-    );
+    syncNotifications();
+    window.addEventListener(CONTENT_UPDATED_EVENT, syncNotifications);
 
     return () => {
-      window.removeEventListener(CONTENT_UPDATED_EVENT, syncAdminNotifications);
-      window.removeEventListener(
-        MEMBER_NOTIFICATIONS_UPDATED_EVENT,
-        refreshNavState,
-      );
+      window.removeEventListener(CONTENT_UPDATED_EVENT, syncNotifications);
     };
-  }, [isAdmin]);
+  }, [currentUser, isAdmin]);
 
   function getLinkState(to) {
     if (location.pathname === to) return undefined;
@@ -111,7 +106,13 @@ export function useNavBarState() {
       );
       setAdminUnreadCount((count) => Math.max(0, count - 1));
     } else {
-      markMemberNotificationAsRead(notification.id);
+      await markMemberNotificationAsRead(notification.id);
+      setMemberNotifications((items) =>
+        items.map((item) =>
+          item.id === notification.id ? { ...item, read: true } : item,
+        ),
+      );
+      setMemberUnreadCount((count) => Math.max(0, count - 1));
     }
 
     refreshNavState();
@@ -133,7 +134,11 @@ export function useNavBarState() {
       );
       setAdminUnreadCount(0);
     } else {
-      markAllMemberNotificationsAsRead();
+      await markAllMemberNotificationsAsRead();
+      setMemberNotifications((items) =>
+        items.map((item) => ({ ...item, read: true })),
+      );
+      setMemberUnreadCount(0);
     }
 
     refreshNavState();

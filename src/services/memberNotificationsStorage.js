@@ -1,113 +1,40 @@
-import { featuredAuthor } from "@/data/articles";
+import { apiClient } from "@/services/apiClient";
 
-const MEMBER_NOTIFICATIONS_STORAGE_KEY =
-  "jb-fit-blueprint-member-notifications";
-export const MEMBER_NOTIFICATIONS_UPDATED_EVENT =
-  "jb-fit-blueprint-member-notifications-updated";
-
-const defaultMemberNotifications = [
-  {
-    id: "member-noti-1",
-    type: "publish",
-    userName: "Thompson P.",
-    userImage: featuredAuthor.image,
-    userAvatarColor: "",
-    articleId: 1,
-    read: false,
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "member-noti-2",
-    type: "comment_reply",
-    userName: "Jacob Lash",
-    userAvatarColor: "bg-emerald-100 text-emerald-700",
-    articleId: 2,
-    read: false,
-    createdAt: "2024-09-12T18:30:00.000Z",
-  },
-];
-
-function dispatchMemberNotificationsUpdated() {
-  window.dispatchEvent(new Event(MEMBER_NOTIFICATIONS_UPDATED_EVENT));
-}
-
-function normalizeMemberNotification(notification) {
+function mapMemberNotification(notification) {
   return {
-    ...notification,
-    type: notification.type || "publish",
-    userName: notification.userName || "User",
-    userImage: notification.userImage || "",
-    userAvatarColor:
-      notification.userAvatarColor || "bg-stone-100 text-stone-700",
-    articleId: notification.articleId || null,
-    read: Boolean(notification.read),
+    articleId: notification.post_id,
+    articleTitle: notification.post_title || "",
+    createdAt: notification.created_at,
+    id: notification.id,
+    message: notification.body || "",
+    read: Boolean(notification.read_at),
+    title: notification.title || "Notification",
+    type: notification.type,
+    userAvatarColor: "bg-stone-100 text-stone-700",
+    userImage: notification.actor_avatar_url || "",
+    userName: notification.actor_name || "System",
   };
 }
 
-function seedMemberNotifications() {
-  localStorage.setItem(
-    MEMBER_NOTIFICATIONS_STORAGE_KEY,
-    JSON.stringify(defaultMemberNotifications),
-  );
-  return defaultMemberNotifications;
+export async function getMemberNotifications({ unread = false } = {}) {
+  const response = await apiClient.get("/notifications", {
+    params: { limit: 100, unread },
+  });
+
+  return {
+    notifications: response.data.data.map(mapMemberNotification),
+    total: response.data.pagination.total,
+  };
 }
 
 export function getMemberNotificationViewPath(notification) {
-  if (notification.articleId) {
-    return `/article/${notification.articleId}`;
-  }
-
-  return null;
+  return notification.articleId ? `/article/${notification.articleId}` : null;
 }
 
-export function getStoredMemberNotifications() {
-  try {
-    const storedNotifications = localStorage.getItem(
-      MEMBER_NOTIFICATIONS_STORAGE_KEY,
-    );
-
-    if (storedNotifications) {
-      return JSON.parse(storedNotifications).map(normalizeMemberNotification);
-    }
-
-    return seedMemberNotifications();
-  } catch (error) {
-    console.error("Error reading member notifications:", error);
-    return seedMemberNotifications();
-  }
+export async function markMemberNotificationAsRead(notificationId) {
+  await apiClient.patch(`/notifications/${notificationId}/read`);
 }
 
-export function saveStoredMemberNotifications(nextNotifications) {
-  localStorage.setItem(
-    MEMBER_NOTIFICATIONS_STORAGE_KEY,
-    JSON.stringify(nextNotifications),
-  );
-  dispatchMemberNotificationsUpdated();
-}
-
-export function markMemberNotificationAsRead(notificationId) {
-  const notifications = getStoredMemberNotifications();
-  const nextNotifications = notifications.map((notification) =>
-    notification.id === notificationId
-      ? { ...notification, read: true }
-      : notification,
-  );
-
-  saveStoredMemberNotifications(nextNotifications);
-}
-
-export function markAllMemberNotificationsAsRead() {
-  const notifications = getStoredMemberNotifications();
-  const nextNotifications = notifications.map((notification) => ({
-    ...notification,
-    read: true,
-  }));
-
-  saveStoredMemberNotifications(nextNotifications);
-}
-
-export function getUnreadMemberNotificationCount() {
-  return getStoredMemberNotifications().filter(
-    (notification) => !notification.read,
-  ).length;
+export async function markAllMemberNotificationsAsRead() {
+  await apiClient.patch("/notifications/read-all");
 }
