@@ -13,7 +13,13 @@
       ]
     }
   ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://fit-blueprint-server.vercel.app/:path*"
+    },
+    { "source": "/(.*)", "destination": "/" }
+  ],
   "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]",
   "git": {
     "deploymentEnabled": {

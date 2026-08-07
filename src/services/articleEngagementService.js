@@ -1,4 +1,11 @@
+import axios from "axios";
+
 import { apiClient } from "@/services/apiClient";
+
+const publicApiClient = axios.create({
+  baseURL: import.meta.env.DEV ? import.meta.env.VITE_API_BASE_URL : "/api",
+  timeout: 15000,
+});
 
 export async function setArticleLike(articleId, shouldLike) {
   const response = shouldLike
@@ -8,8 +15,12 @@ export async function setArticleLike(articleId, shouldLike) {
   return response.data;
 }
 
-export async function getArticleComments(articleId, { page = 1, limit = 20 } = {}) {
-  const response = await apiClient.get(`/posts/${articleId}/comments`, {
+export async function getArticleComments(
+  articleId,
+  { page = 1, limit = 20, includeAuth = false } = {},
+) {
+  const client = includeAuth ? apiClient : publicApiClient;
+  const response = await client.get(`/posts/${articleId}/comments`, {
     params: { page, limit },
   });
 
