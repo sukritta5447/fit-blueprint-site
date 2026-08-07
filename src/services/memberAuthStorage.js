@@ -5,7 +5,7 @@ export function mapSupabaseUser(user) {
 
   return {
     id: user.id,
-    name: user.user_metadata?.name || "",
+    name: user.user_metadata?.name || user.user_metadata?.full_name || "",
     username: user.user_metadata?.username || "",
     email: user.email || "",
     image: user.user_metadata?.image || "",

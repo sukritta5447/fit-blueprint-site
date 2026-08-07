@@ -1,7 +1,7 @@
 export const adminLayoutClasses = {
   page: "min-h-screen bg-[#07060d] text-white",
-  shell: "flex min-h-screen w-full flex-col lg:flex-row",
-  sidebar: "flex w-full shrink-0 flex-col border-b border-violet-500/15 bg-[#0d0b18] px-6 py-6 lg:w-[280px] lg:border-b-0 lg:border-r lg:px-8 lg:py-9",
+  shell: "flex min-h-screen w-full flex-col lg:flex-row lg:items-start",
+  sidebar: "flex w-full shrink-0 flex-col border-b border-violet-500/15 bg-[#0d0b18] px-6 py-6 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-8 lg:py-9 lg:w-[280px]",
   sidebarTitle: "text-sm font-semibold text-violet-400",
   sidebarNav: "grid gap-1 sm:grid-cols-2 lg:block lg:space-y-1",
   navLink: "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
