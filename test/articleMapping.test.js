@@ -23,9 +23,16 @@ test("mapApiArticle supplies a safe author when the API omits it", () => {
 });
 
 test("mapApiArticle preserves a non-empty API author", () => {
-  const article = mapApiArticle({ ...apiArticle, author: "Alex Mercer" });
+  const article = mapApiArticle({
+    ...apiArticle,
+    author: "Alex Mercer",
+    author_avatar_url: "https://example.com/alex.jpg",
+    author_bio: "Strength coach",
+  });
 
   assert.equal(article.author, "Alex Mercer");
+  assert.equal(article.authorAvatar, "https://example.com/alex.jpg");
+  assert.equal(article.authorBio, "Strength coach");
 });
 
 test("mapApiArticle preserves Like state returned by the API", () => {

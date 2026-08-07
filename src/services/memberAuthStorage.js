@@ -29,7 +29,7 @@ export async function signUpMember({ name, username, email, password }) {
     email,
     password,
     options: {
-      data: { name, username, image: "" },
+      data: { full_name: name, name, username, avatar_url: "", image: "" },
     },
   });
 

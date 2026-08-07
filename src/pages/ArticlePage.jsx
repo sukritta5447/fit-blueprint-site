@@ -6,9 +6,9 @@ import { toast } from "sonner";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
-import { featuredAuthor } from "@/data/articles";
 import { useArticle } from "@/hooks/useArticle";
 import { useMemberAuth } from "@/hooks/useMemberAuth";
+import { getPublicAdminProfile } from "@/services/articlesService";
 import {
   createArticleComment,
   deleteArticleComment,
@@ -94,32 +94,38 @@ function ArticleBody({ article }) {
   );
 }
 
-function AuthorCard({ className = "" }) {
+function AuthorCard({ adminProfile, className = "" }) {
+  const authorName = adminProfile?.name || "JB Fit Blueprint";
+  const authorBio = adminProfile?.bio;
+
   return (
     <aside className={className}>
       <div className={pageClasses.authorCard}>
         <div className="flex items-center gap-3">
-          <img
-            src={featuredAuthor.image}
-            alt={featuredAuthor.name}
-            className="size-10 rounded-full object-cover"
-          />
+          {adminProfile?.image ? (
+            <img
+              src={adminProfile.image}
+              alt={authorName}
+              className="size-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex size-10 items-center justify-center rounded-full bg-violet-500/20 text-sm font-semibold text-violet-200">
+              {getInitials(authorName)}
+            </div>
+          )}
           <div>
             <p className="text-[10px] font-medium text-slate-500">
-              {featuredAuthor.role}
+              Article author
             </p>
             <p className="text-sm font-semibold text-white">
-              {featuredAuthor.name}
+              {authorName}
             </p>
           </div>
         </div>
         <hr className="my-4 border-violet-500/15" />
-        <p className="text-xs leading-5 text-slate-400">
-          {featuredAuthor.bio}
-        </p>
-        <p className="mt-3 text-xs leading-5 text-slate-500">
-          {featuredAuthor.note}
-        </p>
+        {authorBio && (
+          <p className="text-xs leading-5 text-slate-400">{authorBio}</p>
+        )}
       </div>
     </aside>
   );
@@ -487,6 +493,23 @@ export function ArticlePage() {
   const [isCommentsLoading, setIsCommentsLoading] = useState(true);
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [adminProfile, setAdminProfile] = useState(null);
+
+  useEffect(() => {
+    let shouldUpdate = true;
+
+    getPublicAdminProfile()
+      .then((profile) => {
+        if (shouldUpdate) setAdminProfile(profile);
+      })
+      .catch((error) => {
+        console.error("Unable to load public admin profile:", error);
+      });
+
+    return () => {
+      shouldUpdate = false;
+    };
+  }, []);
 
   useEffect(() => {
     let shouldUpdate = true;
@@ -496,7 +519,9 @@ export function ArticlePage() {
       setHasCommentsError(false);
 
       try {
-        const result = await getArticleComments(id);
+        const result = await getArticleComments(id, {
+          includeAuth: Boolean(currentUser),
+        });
         if (shouldUpdate) setComments(result.data);
       } catch (error) {
         console.error("Error fetching comments:", error);
@@ -511,7 +536,7 @@ export function ArticlePage() {
     return () => {
       shouldUpdate = false;
     };
-  }, [id]);
+  }, [id, currentUser]);
 
   async function handleLike() {
     if (isAuthLoading || isLiking) return;
@@ -649,7 +674,7 @@ export function ArticlePage() {
           <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_260px]">
             <div>
               <ArticleBody article={article} />
-              <AuthorCard className="mt-10 lg:hidden" />
+              <AuthorCard adminProfile={adminProfile} className="mt-10 lg:hidden" />
               <ShareBar
                 articleUrl={articleUrl}
                 isLiked={Boolean(article.is_liked)}
@@ -670,7 +695,7 @@ export function ArticlePage() {
               />
             </div>
 
-            <AuthorCard className="hidden lg:block" />
+            <AuthorCard adminProfile={adminProfile} className="hidden lg:block" />
           </div>
         </Container>
       </main>

@@ -37,6 +37,8 @@ export function mapApiArticle(apiArticle) {
   return {
     ...apiArticle,
     author: apiArticle.author?.trim() || "JB Fit Blueprint",
+    authorAvatar: apiArticle.author_avatar_url || "",
+    authorBio: apiArticle.author_bio?.trim() || "",
     excerpt: apiArticle.description,
     isoDate: apiArticle.date,
     date: formatArticleDate(apiArticle.date),
@@ -81,6 +83,16 @@ export async function getArticleById(id, { accessToken } = {}) {
   });
 
   return mapApiArticle(response.data);
+}
+
+export async function getPublicAdminProfile() {
+  const response = await axios.get(`${API_BASE_URL}/public-profiles/admin`);
+
+  return {
+    bio: response.data.bio?.trim() || "",
+    image: response.data.avatarUrl || "",
+    name: response.data.fullName?.trim() || response.data.username || "Admin",
+  };
 }
 
 export async function getAllArticlesForSearch() {
