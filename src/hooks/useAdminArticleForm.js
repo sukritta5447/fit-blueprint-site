@@ -14,19 +14,9 @@ import {
 import { getApiErrorMessage } from "@/services/apiClient";
 import { uploadImage } from "@/services/uploadService";
 
+import { createSlug } from "@/utils/createSlug";
+
 const INTRODUCTION_MAX_LENGTH = 120;
-
-function createSlug(title) {
-  const slug = title
-    .trim()
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-
-  return slug || `post-${Date.now()}`;
-}
 
 function getInitialFormValues(article, authorName) {
   return {
@@ -55,25 +45,17 @@ function validateArticleForm(formValues) {
 }
 
 function getArticleSaveToast(status, isEditing) {
-  if (isEditing) {
-    return {
-      title: status === "draft" ? "Article saved as draft" : "Article published",
-      description:
-        status === "draft"
-          ? "You can publish article later"
-          : "Your article has been successfully published",
-    };
-  }
+  const isDraft = status === "draft";
+  const title = isDraft ? "Article saved as draft" : "Article published";
+  const createTitle = isDraft
+    ? "Create article and saved as draft"
+    : "Create article and published";
 
   return {
-    title:
-      status === "draft"
-        ? "Create article and saved as draft"
-        : "Create article and published",
-    description:
-      status === "draft"
-        ? "You can publish article later"
-        : "Your article has been successfully published",
+    title: isEditing ? title : createTitle,
+    description: isDraft
+      ? "You can publish article later"
+      : "Your article has been successfully published",
   };
 }
 
@@ -198,7 +180,7 @@ export function useAdminArticleForm() {
       description: formValues.excerpt.trim(),
       image: formValues.image,
       published_at: publishedAt,
-      slug: existingArticle?.slug || createSlug(formValues.title),
+      slug: existingArticle?.slug || createSlug(formValues.title, "post"),
       status_id: selectedStatus.id,
       title: formValues.title.trim(),
     };

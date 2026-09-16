@@ -103,11 +103,15 @@ export function useArticles() {
     };
   }, [selectedCategory, page, refreshKey]);
 
-  function handleSelectCategory(category) {
-    setSelectedCategory(category);
+  function resetPagination() {
     setArticles([]);
     setPage(1);
     setHasMore(true);
+  }
+
+  function handleSelectCategory(category) {
+    setSelectedCategory(category);
+    resetPagination();
   }
 
   function handleLoadMore() {
@@ -116,9 +120,7 @@ export function useArticles() {
   }
 
   function handleRetry() {
-    setArticles([]);
-    setPage(1);
-    setHasMore(true);
+    resetPagination();
     setRefreshKey((currentKey) => currentKey + 1);
   }
 

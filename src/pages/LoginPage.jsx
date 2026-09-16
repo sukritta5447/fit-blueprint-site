@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { Container } from "@/components/common/Container";
 import { PageShell } from "@/components/common/PageShell";
-import { Input } from "@/components/ui/input";
+import { LoginFields } from "@/components/auth/LoginFields";
 import { signInMember } from "@/services/memberAuthStorage";
 import { authPageClasses } from "@/styles/authPage.styles";
 
@@ -70,39 +70,13 @@ export function LoginPage() {
             </h1>
 
             <form className={authPageClasses.form} onSubmit={handleSubmit}>
-              <div className={authPageClasses.fieldGroup}>
-                <label htmlFor="login-email" className={authPageClasses.label}>
-                  Email
-                </label>
-                <Input
-                  id="login-email"
-                  name="email"
-                  type="email"
-                  placeholder="Email"
-                  value={formValues.email}
-                  className={authPageClasses.input}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
+              <LoginFields
+              idPrefix="login"
+              formValues={formValues}
+              onChange={handleInputChange}
+            />
 
-              <div className={authPageClasses.fieldGroup}>
-                <label htmlFor="login-password" className={authPageClasses.label}>
-                  Password
-                </label>
-                <Input
-                  id="login-password"
-                  name="password"
-                  type="password"
-                  placeholder="Password"
-                  value={formValues.password}
-                  className={authPageClasses.input}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className={authPageClasses.actionWrapper}>
+            <div className={authPageClasses.actionWrapper}>
                 <button
                   type="submit"
                   className={authPageClasses.submitButton}

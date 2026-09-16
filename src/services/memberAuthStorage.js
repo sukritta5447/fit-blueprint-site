@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { updatePassword } from "@/services/passwordService";
 
 export function mapSupabaseUser(user) {
   if (!user) return null;
@@ -69,24 +70,7 @@ export async function updateCurrentUserPassword(passwordValues) {
     return { success: false, error: "No active user found" };
   }
 
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: passwordValues.currentPassword,
-  });
-
-  if (signInError) {
-    return { success: false, error: "Current password is incorrect" };
-  }
-
-  const { error: updateError } = await supabase.auth.updateUser({
-    password: passwordValues.newPassword,
-  });
-
-  if (updateError) {
-    return { success: false, error: updateError.message };
-  }
-
-  return { success: true };
+  return updatePassword(supabase.auth, user.email, passwordValues);
 }
 
 export async function clearCurrentUser() {

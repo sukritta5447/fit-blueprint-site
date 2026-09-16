@@ -18,13 +18,13 @@ export function Footer() {
               </span>
             </div>
             <p className="mt-5 max-w-xs text-sm leading-6 text-slate-500">
-              AI-powered fitness designed to help you reach peak performance.
+              Fitness website designed to help you reach peak performance.
             </p>
           </div>
           <FooterColumn
             title="Platform"
             links={[
-              ["AI Programs", "/program"],
+              ["Custom Programs", "/program"],
               ["Progress Tracker", "/member/dashboard"],
             ]}
           />

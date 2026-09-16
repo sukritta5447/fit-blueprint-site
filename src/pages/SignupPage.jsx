@@ -23,57 +23,41 @@ export function SignupPage() {
 
   const returnPath = location.state?.from || "/";
 
-  function getVisibleErrors(errors, nextTouchedFields) {
-    return Object.keys(errors).reduce((visibleErrors, fieldName) => {
+  function validateTouchedField(name, values) {
+    const nextTouchedFields = { ...touchedFields, [name]: true };
+    const errors = validateSignupForm(values);
+    const visibleErrors = {};
+
+    for (const fieldName of Object.keys(errors)) {
       if (nextTouchedFields[fieldName]) {
         visibleErrors[fieldName] = errors[fieldName];
       }
+    }
 
-      return visibleErrors;
-    }, {});
-  }
-
-  function getAllTouchedFields() {
-    return Object.keys(initialSignupFormValues).reduce((fields, fieldName) => {
-      fields[fieldName] = true;
-      return fields;
-    }, {});
+    setTouchedFields(nextTouchedFields);
+    setFormErrors(visibleErrors);
   }
 
   function handleInputChange(event) {
     const { name, value } = event.target;
-    const nextFormValues = {
-      ...formValues,
-      [name]: value,
-    };
-    const nextTouchedFields = {
-      ...touchedFields,
-      [name]: true,
-    };
-    const errors = validateSignupForm(nextFormValues);
+    const nextFormValues = { ...formValues, [name]: value };
 
     setFormValues(nextFormValues);
-    setTouchedFields(nextTouchedFields);
-    setFormErrors(getVisibleErrors(errors, nextTouchedFields));
+    validateTouchedField(name, nextFormValues);
   }
 
   function handleInputBlur(event) {
-    const { name } = event.target;
-    const nextTouchedFields = {
-      ...touchedFields,
-      [name]: true,
-    };
-    const errors = validateSignupForm(formValues);
-
-    setTouchedFields(nextTouchedFields);
-    setFormErrors(getVisibleErrors(errors, nextTouchedFields));
+    validateTouchedField(event.target.name, formValues);
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
 
     const errors = validateSignupForm(formValues);
-    const nextTouchedFields = getAllTouchedFields();
+    const nextTouchedFields = {};
+    for (const fieldName of Object.keys(initialSignupFormValues)) {
+      nextTouchedFields[fieldName] = true;
+    }
 
     setTouchedFields(nextTouchedFields);
 

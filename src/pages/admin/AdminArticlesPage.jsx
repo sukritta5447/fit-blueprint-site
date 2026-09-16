@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import {
   adminArticlesPageClasses,
 } from "@/styles/adminArticlesPage.styles";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/utils/utils";
 import { AdminDeleteArticleDialog } from "@/components/admin/AdminDeleteArticleDialog";
 import {
   Select,
@@ -23,30 +24,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-function PublishedStatus() {
-  return (
-    <span className={adminArticlesPageClasses.statusPublished}>
-      <span className={adminArticlesPageClasses.statusDot} aria-hidden="true" />
-      Published
-    </span>
-  );
-}
-
-function DraftStatus() {
-  return (
-    <span className="inline-flex items-center gap-2 font-medium text-neutral-500">
-      <span className="size-2 rounded-full bg-neutral-400" aria-hidden="true" />
-      Draft
-    </span>
-  );
-}
-
 function ArticleStatus({ status }) {
-  if (status === "draft") {
-    return <DraftStatus />;
-  }
+  const isDraft = status === "draft";
 
-  return <PublishedStatus />;
+  return (
+    <span
+      className={isDraft
+        ? "inline-flex items-center gap-2 font-medium text-neutral-500"
+        : adminArticlesPageClasses.statusPublished}
+    >
+      <span
+        className={isDraft
+          ? "size-2 rounded-full bg-neutral-400"
+          : adminArticlesPageClasses.statusDot}
+        aria-hidden="true"
+      />
+      {isDraft ? "Draft" : "Published"}
+    </span>
+  );
 }
 
 export function AdminArticlesPage() {
@@ -82,25 +77,22 @@ export function AdminArticlesPage() {
     Promise.resolve().then(loadContent);
   }, [loadContent]);
 
-  const filteredArticles = useMemo(() => {
-    const keyword = searchKeyword.trim().toLowerCase();
+  const keyword = searchKeyword.trim().toLowerCase();
+  const filteredArticles = articles.filter((article) => {
+    const articleStatus = article.status || "published";
+    const matchesCategory =
+      selectedCategory === "all" || article.category === selectedCategory;
+    const matchesStatus =
+      selectedStatus === "all" || articleStatus === selectedStatus;
+    const matchesKeyword =
+      !keyword ||
+      [article.title, article.excerpt, article.category, article.author]
+        .join(" ")
+        .toLowerCase()
+        .includes(keyword);
 
-    return articles.filter((article) => {
-      const articleStatus = article.status || "published";
-      const matchesCategory =
-        selectedCategory === "all" || article.category === selectedCategory;
-      const matchesStatus =
-        selectedStatus === "all" || articleStatus === selectedStatus;
-      const matchesKeyword =
-        !keyword ||
-        [article.title, article.excerpt, article.category, article.author]
-          .join(" ")
-          .toLowerCase()
-          .includes(keyword);
-
-      return matchesCategory && matchesStatus && matchesKeyword;
-    });
-  }, [articles, searchKeyword, selectedCategory, selectedStatus]);
+    return matchesCategory && matchesStatus && matchesKeyword;
+  });
 
   async function handleDeleteConfirm() {
     if (!articleToDelete) return;
@@ -201,7 +193,7 @@ export function AdminArticlesPage() {
                       Status
                     </th>
                     <th
-                      className={`${adminArticlesPageClasses.tableHeadCell} text-right`}
+                      className={cn(adminArticlesPageClasses.tableHeadCell, "text-right")}
                     >
                       <span className="sr-only">Actions</span>
                     </th>
@@ -218,13 +210,13 @@ export function AdminArticlesPage() {
                       }
                     >
                       <td
-                        className={`${adminArticlesPageClasses.tableCell} ${adminArticlesPageClasses.titleCell}`}
+                        className={cn(adminArticlesPageClasses.tableCell, adminArticlesPageClasses.titleCell)}
                         title={article.title}
                       >
                         {article.title}
                       </td>
                       <td
-                        className={`${adminArticlesPageClasses.tableCell} ${adminArticlesPageClasses.categoryCell}`}
+                        className={cn(adminArticlesPageClasses.tableCell, adminArticlesPageClasses.categoryCell)}
                       >
                         {article.category}
                       </td>
@@ -232,7 +224,7 @@ export function AdminArticlesPage() {
                         <ArticleStatus status={article.status} />
                       </td>
                       <td
-                        className={`${adminArticlesPageClasses.tableCell} ${adminArticlesPageClasses.actionsCell}`}
+                        className={cn(adminArticlesPageClasses.tableCell, adminArticlesPageClasses.actionsCell)}
                       >
                         <div className="inline-flex items-center gap-1">
                           <Link

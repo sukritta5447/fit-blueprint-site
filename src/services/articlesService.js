@@ -56,19 +56,25 @@ export async function getArticles({
   page = 1,
   limit = 6,
 } = {}) {
-  const response = await axios.get(`${API_BASE_URL}/posts`, {
-    params:
-      category === "Highlight"
-        ? { page, limit }
-        : {
-            category: category.toLowerCase().replace(/\s+/g, "-"),
-            page,
-            limit,
-          },
-  });
+  const [response, adminProfile] = await Promise.all([
+    axios.get(`${API_BASE_URL}/posts`, {
+      params:
+        category === "Highlight"
+          ? { page, limit }
+          : {
+              category: category.toLowerCase().replace(/\s+/g, "-"),
+              page,
+              limit,
+            },
+    }),
+    getPublicAdminProfile().catch(() => null),
+  ]);
 
   return {
-    articles: response.data.posts.map(mapApiArticle),
+    articles: response.data.posts.map((post) => ({
+      ...mapApiArticle(post),
+      adminProfile,
+    })),
     totalArticles: response.data.totalPosts,
     totalPages: response.data.totalPages,
     currentPage: response.data.currentPage,

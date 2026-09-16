@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Ban,
   Pause,
@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
+import { cn } from "@/utils/utils";
 import { useMemberAuth } from "@/hooks/useMemberAuth";
 import { getApiErrorMessage } from "@/services/apiClient";
 import {
@@ -24,6 +25,12 @@ const actionLabels = {
   disable: "Disable account",
   restore: "Restore account",
   delete: "Delete account",
+};
+
+const actionStatuses = {
+  pause: "paused",
+  disable: "disabled",
+  restore: "active",
 };
 
 function MemberDetailsDialog({ member, isSuperAdmin, isProcessing, onAction, onClose }) {
@@ -128,7 +135,13 @@ function ActionButton({ icon: Icon, label, danger = false, disabled, onClick }) 
   return (
     <button
       type="button"
-      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${danger ? "border-red-500/30 text-red-400 hover:bg-red-500/10" : "border-violet-500/20 text-violet-300 hover:bg-violet-500/10"}`}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        danger
+          ? "border-red-500/30 text-red-400 hover:bg-red-500/10"
+          : "border-violet-500/20 text-violet-300 hover:bg-violet-500/10",
+      )}
       disabled={disabled}
       onClick={onClick}
     >
@@ -140,11 +153,13 @@ function ActionButton({ icon: Icon, label, danger = false, disabled, onClick }) 
 
 function ActionConfirmDialog({ action, member, isProcessing, onCancel, onConfirm }) {
   const isDelete = action === "delete";
-  const message = isDelete
-    ? "This permanently deletes the member and their related data. This action cannot be undone."
-    : action === "restore"
-      ? "This will restore access to this member account."
-      : `This will ${action} this member account.`;
+  let message = `This will ${action} this member account.`;
+
+  if (isDelete) {
+    message = "This permanently deletes the member and their related data. This action cannot be undone.";
+  } else if (action === "restore") {
+    message = "This will restore access to this member account.";
+  }
 
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-black/70 px-5">
@@ -165,7 +180,10 @@ function ActionConfirmDialog({ action, member, isProcessing, onCancel, onConfirm
           </button>
           <button
             type="button"
-            className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition ${isDelete ? "bg-red-600 hover:bg-red-500" : "bg-violet-600 hover:bg-violet-500"}`}
+            className={cn(
+              "rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition",
+              isDelete ? "bg-red-600 hover:bg-red-500" : "bg-violet-600 hover:bg-violet-500",
+            )}
             disabled={isProcessing}
             onClick={onConfirm}
           >
@@ -209,17 +227,12 @@ export function AdminMembersPage() {
     };
   }, []);
 
-  const filteredMembers = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return members;
-    return members.filter((member) =>
-      `${member.name} ${member.email}`.toLowerCase().includes(query),
-    );
-  }, [members, search]);
-
-  function handleActionRequest(action) {
-    setPendingAction(action);
-  }
+  const query = search.trim().toLowerCase();
+  const filteredMembers = query
+    ? members.filter((member) =>
+        `${member.name} ${member.email}`.toLowerCase().includes(query),
+      )
+    : members;
 
   async function handleActionConfirm() {
     if (!selectedMember || !pendingAction) return;
@@ -232,11 +245,7 @@ export function AdminMembersPage() {
         toast.success("Member deleted");
         setSelectedMember(null);
       } else {
-        const status = pendingAction === "pause"
-          ? "paused"
-          : pendingAction === "disable"
-            ? "disabled"
-            : "active";
+        const status = actionStatuses[pendingAction] || "active";
         await updateAdminMemberStatus(selectedMember.id, status);
         toast.success(`Member account ${status}`);
       }
@@ -268,17 +277,53 @@ export function AdminMembersPage() {
       <div className="forge-panel mt-8 rounded-2xl p-5">
         <label className="relative block max-w-md">
           <span className="sr-only">Search members</span>
-          <Input value={search} onChange={(event) => setSearch(event.target.value)} className="h-11 rounded-xl border-violet-500/20 bg-[#0b0913] pl-11 text-white placeholder:text-slate-600" placeholder="Search name or email..." />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="h-11 rounded-xl border-violet-500/20 bg-[#0b0913] pl-11 text-white placeholder:text-slate-600"
+            placeholder="Search name or email..."
+          />
           <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
         </label>
         <div className="mt-5 overflow-x-auto">
           <table className="w-full min-w-[700px] text-left text-sm">
-            <thead className="border-b border-violet-500/20 text-xs uppercase tracking-wider text-slate-500"><tr><th className="px-3 py-4">Member</th><th className="px-3 py-4">Goal</th><th className="px-3 py-4">Plan</th><th className="px-3 py-4">Status</th><th className="px-3 py-4" /></tr></thead>
+            <thead className="border-b border-violet-500/20 text-xs uppercase tracking-wider text-slate-500">
+              <tr>
+                <th className="px-3 py-4">Member</th>
+                <th className="px-3 py-4">Goal</th>
+                <th className="px-3 py-4">Plan</th>
+                <th className="px-3 py-4">Status</th>
+                <th className="px-3 py-4" />
+              </tr>
+            </thead>
             <tbody>
               {isLoading && <tr><td colSpan="5" className="px-3 py-8 text-center text-slate-500">Loading members...</td></tr>}
               {!isLoading && error && <tr><td colSpan="5" className="px-3 py-8 text-center text-rose-300">{error}</td></tr>}
               {!isLoading && !error && filteredMembers.length === 0 && <tr><td colSpan="5" className="px-3 py-8 text-center text-slate-500">No members found.</td></tr>}
-              {!isLoading && !error && filteredMembers.map((member) => <tr key={member.id} className="border-b border-violet-500/10 last:border-0"><td className="px-3 py-4"><strong className="text-white">{member.name || "Unnamed member"}</strong><span className="mt-1 block text-xs text-slate-500">{member.email}</span></td><td className="px-3 py-4 text-slate-300">{formatGoal(member.goal)}</td><td className="px-3 py-4 text-slate-300">{member.plan}</td><td className="px-3 py-4"><span className={member.status === "active" ? "text-emerald-400" : "text-slate-500"}>● {capitalize(member.status)}</span></td><td className="px-3 py-4 text-right"><button type="button" className="rounded-lg border border-violet-500/20 px-3 py-2 text-xs text-violet-300 transition hover:bg-violet-500/10" onClick={() => setSelectedMember(member)}>View</button></td></tr>)}
+              {!isLoading && !error && filteredMembers.map((member) => (
+                <tr key={member.id} className="border-b border-violet-500/10 last:border-0">
+                  <td className="px-3 py-4">
+                    <strong className="text-white">{member.name || "Unnamed member"}</strong>
+                    <span className="mt-1 block text-xs text-slate-500">{member.email}</span>
+                  </td>
+                  <td className="px-3 py-4 text-slate-300">{formatGoal(member.goal)}</td>
+                  <td className="px-3 py-4 text-slate-300">{member.plan}</td>
+                  <td className="px-3 py-4">
+                    <span className={member.status === "active" ? "text-emerald-400" : "text-slate-500"}>
+                      ● {capitalize(member.status)}
+                    </span>
+                  </td>
+                  <td className="px-3 py-4 text-right">
+                    <button
+                      type="button"
+                      className="rounded-lg border border-violet-500/20 px-3 py-2 text-xs text-violet-300 transition hover:bg-violet-500/10"
+                      onClick={() => setSelectedMember(member)}
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -288,7 +333,7 @@ export function AdminMembersPage() {
           member={selectedMember}
           isSuperAdmin={currentAdmin?.role === "super_admin"}
           isProcessing={isProcessing}
-          onAction={handleActionRequest}
+          onAction={setPendingAction}
           onClose={() => setSelectedMember(null)}
         />
       )}

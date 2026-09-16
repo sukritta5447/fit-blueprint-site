@@ -10,6 +10,18 @@ import {
   getAdminAccounts,
 } from "@/services/adminDirectoryService";
 
+const adminFields = [
+  { name: "name", label: "Full name" },
+  { name: "email", label: "Email", type: "email" },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    minLength: 8,
+    hint: "Minimum 8 characters",
+  },
+];
+
 function AddAdminDialog({ isSubmitting, onCancel, onSubmit }) {
   const [values, setValues] = useState({
     name: "",
@@ -50,37 +62,20 @@ function AddAdminDialog({ isSubmitting, onCancel, onSubmit }) {
         </p>
 
         <div className="mt-6 space-y-4">
-          <label className="block text-sm font-medium text-slate-300">
-            Full name
-            <Input
-              required
-              value={values.name}
-              onChange={(event) => updateValue("name", event.target.value)}
-              className="mt-2 h-11 rounded-xl border-violet-500/20 bg-[#0b0913] text-white"
-            />
-          </label>
-          <label className="block text-sm font-medium text-slate-300">
-            Email
-            <Input
-              required
-              type="email"
-              value={values.email}
-              onChange={(event) => updateValue("email", event.target.value)}
-              className="mt-2 h-11 rounded-xl border-violet-500/20 bg-[#0b0913] text-white"
-            />
-          </label>
-          <label className="block text-sm font-medium text-slate-300">
-            Password
-            <Input
-              required
-              type="password"
-              minLength={8}
-              value={values.password}
-              onChange={(event) => updateValue("password", event.target.value)}
-              className="mt-2 h-11 rounded-xl border-violet-500/20 bg-[#0b0913] text-white"
-            />
-            <span className="mt-1 block text-xs text-slate-500">Minimum 8 characters</span>
-          </label>
+          {adminFields.map((field) => (
+            <label key={field.name} className="block text-sm font-medium text-slate-300">
+              {field.label}
+              <Input
+                required
+                type={field.type}
+                minLength={field.minLength}
+                value={values[field.name]}
+                onChange={(event) => updateValue(field.name, event.target.value)}
+                className="mt-2 h-11 rounded-xl border-violet-500/20 bg-[#0b0913] text-white"
+              />
+              {field.hint && <span className="mt-1 block text-xs text-slate-500">{field.hint}</span>}
+            </label>
+          ))}
           <label className="block text-sm font-medium text-slate-300">
             Role
             <span className="relative mt-2 block">
@@ -150,7 +145,7 @@ export function AdminAccountsPage() {
 
     try {
       await createAdminAccount(values);
-      toast.success("Administrator invitation sent");
+      toast.success("Administrator account created");
       setIsAddOpen(false);
       setAdmins(await getAdminAccounts());
     } catch (requestError) {
@@ -184,13 +179,26 @@ export function AdminAccountsPage() {
       <div className="forge-panel mt-8 overflow-x-auto rounded-2xl p-5">
         <table className="w-full min-w-[650px] text-left text-sm">
           <thead className="border-b border-violet-500/20 text-xs uppercase tracking-wider text-slate-500">
-            <tr><th className="px-3 py-4">Administrator</th><th className="px-3 py-4">Role</th><th className="px-3 py-4">Last active</th></tr>
+            <tr>
+              <th className="px-3 py-4">Administrator</th>
+              <th className="px-3 py-4">Role</th>
+              <th className="px-3 py-4">Last active</th>
+            </tr>
           </thead>
           <tbody>
             {isLoading && <tr><td colSpan="3" className="px-3 py-8 text-center text-slate-500">Loading administrators...</td></tr>}
             {!isLoading && error && <tr><td colSpan="3" className="px-3 py-8 text-center text-rose-300">{error}</td></tr>}
             {!isLoading && !error && admins.length === 0 && <tr><td colSpan="3" className="px-3 py-8 text-center text-slate-500">No administrators found.</td></tr>}
-            {!isLoading && !error && admins.map((admin) => <tr key={admin.id} className="border-b border-violet-500/10 last:border-0"><td className="px-3 py-4"><strong className="text-white">{admin.name || "Unnamed administrator"}</strong><span className="mt-1 block text-xs text-slate-500">{admin.email}</span></td><td className="px-3 py-4 text-slate-300">{formatRole(admin.role)}</td><td className="px-3 py-4 text-slate-400">{formatLastActive(admin.lastActiveAt)}</td></tr>)}
+            {!isLoading && !error && admins.map((admin) => (
+              <tr key={admin.id} className="border-b border-violet-500/10 last:border-0">
+                <td className="px-3 py-4">
+                  <strong className="text-white">{admin.name || "Unnamed administrator"}</strong>
+                  <span className="mt-1 block text-xs text-slate-500">{admin.email}</span>
+                </td>
+                <td className="px-3 py-4 text-slate-300">{formatRole(admin.role)}</td>
+                <td className="px-3 py-4 text-slate-400">{formatLastActive(admin.lastActiveAt)}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -211,5 +219,8 @@ function formatRole(role) {
 }
 
 function formatLastActive(value) {
-  return value ? new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(Math.round((new Date(value) - Date.now()) / 3600000), "hour") : "Never";
+  if (!value) return "Never";
+
+  const hours = Math.round((new Date(value) - Date.now()) / 3600000);
+  return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(hours, "hour");
 }

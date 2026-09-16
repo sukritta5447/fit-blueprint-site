@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { updatePassword } from "@/services/passwordService";
 
 const ADMIN_ROLES = new Set(["content_admin", "support_admin", "super_admin"]);
 const CONTENT_ADMIN_ROLES = new Set(["content_admin", "super_admin"]);
@@ -66,24 +67,7 @@ export async function updateCurrentAdminPassword(passwordValues) {
     return { success: false, error: "No active admin found" };
   }
 
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: passwordValues.currentPassword,
-  });
-
-  if (signInError) {
-    return { success: false, error: "Current password is incorrect" };
-  }
-
-  const { error: updateError } = await supabase.auth.updateUser({
-    password: passwordValues.newPassword,
-  });
-
-  if (updateError) {
-    return { success: false, error: updateError.message };
-  }
-
-  return { success: true };
+  return updatePassword(supabase.auth, user.email, passwordValues);
 }
 
 export async function signOutAdmin() {

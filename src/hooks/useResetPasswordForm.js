@@ -65,22 +65,31 @@ export function useResetPasswordForm({ onResetPassword, onSuccess }) {
 
   async function handleConfirmReset() {
     setIsSubmitting(true);
-    const result = await onResetPassword({
-      currentPassword: formValues.currentPassword,
-      newPassword: formValues.newPassword,
-    });
-    setIsSubmitting(false);
 
-    if (!result.success) {
-      setFormErrors({ currentPassword: result.error });
+    try {
+      const result = await onResetPassword({
+        currentPassword: formValues.currentPassword,
+        newPassword: formValues.newPassword,
+      });
+
+      if (!result.success) {
+        setFormErrors({ currentPassword: result.error });
+        setIsConfirmOpen(false);
+        return;
+      }
+
+      setFormValues(initialPasswordValues);
+      setFormErrors({});
       setIsConfirmOpen(false);
-      return;
+      onSuccess?.(result);
+    } catch (error) {
+      setFormErrors({
+        currentPassword: error.message || "Unable to reset password. Please try again.",
+      });
+      setIsConfirmOpen(false);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setFormValues(initialPasswordValues);
-    setFormErrors({});
-    setIsConfirmOpen(false);
-    onSuccess?.(result);
   }
 
   return {

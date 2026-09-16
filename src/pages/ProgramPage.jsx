@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useMemberAuth } from "@/hooks/useMemberAuth";
 import { apiClient, getApiErrorMessage } from "@/services/apiClient";
 import { saveMemberProgram } from "@/services/memberProgramStorage";
+import { cn } from "@/utils/utils";
 
 const fieldClass =
   "h-11 rounded-xl border-violet-500/20 bg-[#0b0913] px-4 text-white shadow-none placeholder:text-slate-600";
@@ -32,6 +33,7 @@ export function ProgramPage() {
     }
 
     const formData = new FormData(event.currentTarget);
+    const restrictions = formData.get("restrictions")?.trim() || "";
     const input = {
       age: Number(formData.get("age")),
       weight_kg: Number(formData.get("weight_kg")),
@@ -41,8 +43,8 @@ export function ProgramPage() {
       experience: formData.get("experience"),
       days_per_week: Number(days),
       diet: formData.get("diet"),
-      restrictions: formData.get("restrictions")?.trim() || "",
-      injuries: formData.get("restrictions")?.trim() || "",
+      restrictions,
+      injuries: restrictions,
     };
 
     setIsSubmitting(true);
@@ -100,7 +102,6 @@ export function ProgramPage() {
     <PageShell>
       <main>
         <Container className="py-14 md:py-20">
-          <p className="forge-kicker">AI engine</p>
           <h1 className="mt-5 text-4xl font-semibold uppercase text-white md:text-5xl">
             Build your <span className="text-violet-400">program</span>
           </h1>
@@ -302,38 +303,16 @@ function ProgramResult({ result }) {
           ))}
         </div>
       </div>
-      <div className="mt-4 rounded-xl bg-white/[0.035] p-4">
-        <p className="text-xs uppercase tracking-wider text-violet-400">
-          Nutrition guidance
-        </p>
-        {mealGuidance.length ? (
-          <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-            {mealGuidance.map((item) => (
-              <li key={item}>• {item}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-sm text-slate-500">
-            No nutrition guidance available.
-          </p>
-        )}
-      </div>
-      <div className="mt-4 rounded-xl bg-white/[0.035] p-4">
-        <p className="text-xs uppercase tracking-wider text-violet-400">
-          Food suggestions
-        </p>
-        {foodSuggestions.length ? (
-          <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-            {foodSuggestions.map((item) => (
-              <li key={item}>• {item}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-sm text-slate-500">
-            No food suggestions available.
-          </p>
-        )}
-      </div>
+      <NutritionList
+        title="Nutrition guidance"
+        items={mealGuidance}
+        emptyText="No nutrition guidance available."
+      />
+      <NutritionList
+        title="Food suggestions"
+        items={foodSuggestions}
+        emptyText="No food suggestions available."
+      />
       {result.ai_explanation && (
         <div className="mt-4 rounded-xl border border-violet-500/20 bg-violet-500/[0.06] p-4">
           <p className="text-xs uppercase tracking-wider text-violet-400">
@@ -343,6 +322,21 @@ function ProgramResult({ result }) {
             {result.ai_explanation}
           </p>
         </div>
+      )}
+    </div>
+  );
+}
+
+function NutritionList({ title, items, emptyText }) {
+  return (
+    <div className="mt-4 rounded-xl bg-white/[0.035] p-4">
+      <p className="text-xs uppercase tracking-wider text-violet-400">{title}</p>
+      {items.length ? (
+        <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
+          {items.map((item) => <li key={item}>• {item}</li>)}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm text-slate-500">{emptyText}</p>
       )}
     </div>
   );
@@ -375,11 +369,11 @@ function ProgramField({ label, children }) {
 
 function ProgramSelect({ name, label, options, full = false }) {
   return (
-    <label className={`space-y-2 ${full ? "sm:col-span-2" : ""}`}>
+    <label className={cn("space-y-2", full && "sm:col-span-2")}>
       <span className="text-xs uppercase tracking-wider text-slate-400">
         {label}
       </span>
-      <select name={name} className={`${fieldClass} w-full`}>
+      <select name={name} className={cn(fieldClass, "w-full")}>
         {options.map((option) => {
           const item =
             typeof option === "string"

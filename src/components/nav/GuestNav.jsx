@@ -12,7 +12,7 @@ import { navClasses } from "@/styles/navBar.styles";
 const mobileLinks = [
   { label: "Home", to: "/" },
   { label: "Blog", to: "/blog" },
-  { label: "AI Programs", to: "/program" },
+  { label: "Custom Programs", to: "/program" },
   { label: "Log in", to: "/login" },
   { label: "Get Started", to: "/signup", primary: true },
 ];
@@ -20,7 +20,10 @@ const mobileLinks = [
 export function GuestNav({ getLinkState }) {
   return (
     <>
-      <nav className="hidden items-center gap-3 md:flex" aria-label="Account navigation">
+      <nav
+        className="hidden items-center gap-3 md:flex"
+        aria-label="Account navigation"
+      >
         <Link
           to="/login"
           state={getLinkState("/login")}

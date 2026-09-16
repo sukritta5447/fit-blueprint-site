@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getArticleById } from "@/services/articlesService";
 import { CONTENT_UPDATED_EVENT } from "@/services/contentEvents";
@@ -59,11 +59,5 @@ export function useArticle(id, authUserId) {
     };
   }, [authUserId, id, refreshKey]);
 
-  const updateArticle = useCallback((updater) => {
-    setArticle((currentArticle) =>
-      typeof updater === "function" ? updater(currentArticle) : updater,
-    );
-  }, []);
-
-  return { article, isLoading, hasError, updateArticle };
+  return { article, isLoading, hasError, updateArticle: setArticle };
 }

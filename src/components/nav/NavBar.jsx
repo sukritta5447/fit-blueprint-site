@@ -9,7 +9,7 @@ import { useNavBarState } from "@/hooks/useNavBarState";
 const publicLinks = [
   { label: "Home", to: "/", end: true },
   { label: "Blog", to: "/blog" },
-  { label: "Programs", to: "/program" },
+  { label: "Custom Programs", to: "/program" },
 ];
 
 export function NavBar() {

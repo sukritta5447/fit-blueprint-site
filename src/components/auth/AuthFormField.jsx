@@ -2,7 +2,15 @@ import { Input } from "@/components/ui/input";
 import { authPageClasses } from "@/styles/authPage.styles";
 import { cn } from "@/utils/utils";
 
-export function AuthFormField({ field, value, error, onChange, onBlur }) {
+export function AuthFormField({
+  field,
+  value,
+  error,
+  isInvalid = Boolean(error),
+  required = false,
+  onChange,
+  onBlur,
+}) {
   return (
     <div className={authPageClasses.fieldGroup}>
       <label htmlFor={field.id} className={authPageClasses.label}>
@@ -14,9 +22,10 @@ export function AuthFormField({ field, value, error, onChange, onBlur }) {
         type={field.type}
         placeholder={field.placeholder}
         value={value}
-        aria-invalid={Boolean(error)}
+        required={required}
+        aria-invalid={isInvalid}
         aria-describedby={error ? `${field.id}-error` : undefined}
-        className={cn(authPageClasses.input, error && authPageClasses.inputError)}
+        className={cn(authPageClasses.input, isInvalid && authPageClasses.inputError)}
         onChange={onChange}
         onBlur={onBlur}
       />

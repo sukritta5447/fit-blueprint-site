@@ -13,6 +13,11 @@ import { uploadImage } from "@/services/uploadService";
 import { adminProfilePageClasses } from "@/styles/adminProfilePage.styles";
 
 const BIO_MAX_LENGTH = 120;
+const profileFields = [
+  { name: "name", label: "Name" },
+  { name: "username", label: "Username" },
+  { name: "email", label: "Email", type: "email", readOnly: true },
+];
 
 function ProfileAvatar({ image, name }) {
   if (image) {
@@ -210,59 +215,30 @@ export function AdminProfilePage() {
         <div className={adminProfilePageClasses.divider} />
 
         <div className={adminProfilePageClasses.fields}>
-          <div className={adminProfilePageClasses.fieldGroup}>
-            <label htmlFor="admin-profile-name" className={adminProfilePageClasses.label}>
-              Name
-            </label>
-            <Input
-              id="admin-profile-name"
-              name="name"
-              value={formValues.name}
-              onChange={handleInputChange}
-              className={adminProfilePageClasses.input}
-            />
-            {formErrors.name && (
-              <p className={adminProfilePageClasses.errorText}>{formErrors.name}</p>
-            )}
-          </div>
-
-          <div className={adminProfilePageClasses.fieldGroup}>
-            <label
-              htmlFor="admin-profile-username"
-              className={adminProfilePageClasses.label}
-            >
-              Username
-            </label>
-            <Input
-              id="admin-profile-username"
-              name="username"
-              value={formValues.username}
-              onChange={handleInputChange}
-              className={adminProfilePageClasses.input}
-            />
-            {formErrors.username && (
-              <p className={adminProfilePageClasses.errorText}>
-                {formErrors.username}
-              </p>
-            )}
-          </div>
-
-          <div className={adminProfilePageClasses.fieldGroup}>
-            <label htmlFor="admin-profile-email" className={adminProfilePageClasses.label}>
-              Email
-            </label>
-            <Input
-              id="admin-profile-email"
-              name="email"
-              type="email"
-              value={formValues.email}
-              readOnly
-              className={adminProfilePageClasses.input}
-            />
-            {formErrors.email && (
-              <p className={adminProfilePageClasses.errorText}>{formErrors.email}</p>
-            )}
-          </div>
+          {profileFields.map((field) => (
+            <div key={field.name} className={adminProfilePageClasses.fieldGroup}>
+              <label
+                htmlFor={`admin-profile-${field.name}`}
+                className={adminProfilePageClasses.label}
+              >
+                {field.label}
+              </label>
+              <Input
+                id={`admin-profile-${field.name}`}
+                name={field.name}
+                type={field.type}
+                value={formValues[field.name]}
+                readOnly={field.readOnly}
+                onChange={field.readOnly ? undefined : handleInputChange}
+                className={adminProfilePageClasses.input}
+              />
+              {formErrors[field.name] && (
+                <p className={adminProfilePageClasses.errorText}>
+                  {formErrors[field.name]}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
 
         <div className={`${adminProfilePageClasses.bioFieldGroup} mt-6`}>

@@ -14,6 +14,7 @@ import {
 import { getApiErrorMessage } from "@/services/apiClient";
 import { adminLayoutClasses } from "@/styles/adminLayout.styles";
 import { cn } from "@/utils/utils";
+import { createSlug } from "@/utils/createSlug";
 
 function CategoryFormDialog({
   title,
@@ -120,21 +121,9 @@ export function AdminCategoriesPage() {
     ).length;
   }
 
-  function createSlug(name) {
-    const slug = name
-      .trim()
-      .toLowerCase()
-      .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-
-    return slug || `category-${Date.now()}`;
-  }
-
   async function handleCreateCategory(name) {
     try {
-      await createAdminCategory({ name: name.trim(), slug: createSlug(name) });
+      await createAdminCategory({ name: name.trim(), slug: createSlug(name, "category") });
       toast.success("Category created");
       setIsCreateOpen(false);
       await loadContent();
@@ -149,7 +138,7 @@ export function AdminCategoriesPage() {
     try {
       await updateAdminCategory(categoryToEdit.id, {
         name: name.trim(),
-        slug: createSlug(name),
+        slug: createSlug(name, "category"),
       });
       toast.success("Category updated");
       setCategoryToEdit(null);
@@ -159,6 +148,19 @@ export function AdminCategoriesPage() {
         description: getApiErrorMessage(error),
       });
     }
+  }
+
+  function handleRequestDelete(category) {
+    const articleCount = getCategoryArticleCount(category.id);
+
+    if (articleCount > 0) {
+      toast.error("Category is in use", {
+        description: "Move or delete its articles before deleting this category.",
+      });
+      return;
+    }
+
+    setCategoryToDelete(category);
   }
 
   async function handleDeleteCategory() {
@@ -230,21 +232,7 @@ export function AdminCategoriesPage() {
                             adminLayoutClasses.dangerButton,
                             "gap-2",
                           )}
-                          onClick={() => {
-                            const articleCount = getCategoryArticleCount(
-                              category.id,
-                            );
-
-                            if (articleCount > 0) {
-                              toast.error("Category is in use", {
-                                description:
-                                  "Move or delete its articles before deleting this category.",
-                              });
-                              return;
-                            }
-
-                            setCategoryToDelete(category);
-                          }}
+                          onClick={() => handleRequestDelete(category)}
                         >
                           <Trash2 size={14} />
                           Delete

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-import { Input } from "@/components/ui/input";
+import { LoginFields } from "@/components/auth/LoginFields";
 import { signInAdmin } from "@/services/adminAuthStorage";
 import { clearCurrentUser } from "@/services/memberAuthStorage";
 import { authPageClasses } from "@/styles/authPage.styles";
@@ -75,51 +75,12 @@ export function AdminLoginPage() {
           </h1>
 
           <form className={authPageClasses.form} onSubmit={handleSubmit}>
-            <div className={authPageClasses.fieldGroup}>
-              <label
-                htmlFor="admin-login-email"
-                className={authPageClasses.label}
-              >
-                Email
-              </label>
-              <Input
-                id="admin-login-email"
-                name="email"
-                type="email"
-                placeholder="Email"
-                value={formValues.email}
-                aria-invalid={hasLoginError}
-                className={cn(
-                  authPageClasses.input,
-                  hasLoginError && authPageClasses.inputError,
-                )}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div className={authPageClasses.fieldGroup}>
-              <label
-                htmlFor="admin-login-password"
-                className={authPageClasses.label}
-              >
-                Password
-              </label>
-              <Input
-                id="admin-login-password"
-                name="password"
-                type="password"
-                placeholder="Password"
-                value={formValues.password}
-                aria-invalid={hasLoginError}
-                className={cn(
-                  authPageClasses.input,
-                  hasLoginError && authPageClasses.inputError,
-                )}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+            <LoginFields
+              idPrefix="admin-login"
+              formValues={formValues}
+              hasError={hasLoginError}
+              onChange={handleInputChange}
+            />
 
             <div className={authPageClasses.actionWrapper}>
               <button
