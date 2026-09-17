@@ -53,6 +53,7 @@ export function ProgramPage() {
       const { data: response } = await apiClient.post(
         "/programs/calculate",
         input,
+        { timeout: 60000 },
       );
       const program = response.data;
 

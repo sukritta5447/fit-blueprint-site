@@ -62,11 +62,14 @@ export function MemberDashboardPage() {
   const displayName = currentUser?.name || currentUser?.username || "Athlete";
 
   async function refreshDashboard() {
+    setIsLoading(true);
     setLoadError("");
     try {
       setDashboard(await getMemberDashboardData());
     } catch (error) {
       setLoadError(getApiErrorMessage(error));
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -205,7 +208,13 @@ function DashboardSidebar({ user, activeSection, onSectionChange }) {
 
 function DashboardContent({ dashboard, activeSection, onRefresh, isLoading, error }) {
   if (isLoading) return <LoadingState />;
-  if (error) return <ErrorState message={error} />;
+  if (error)
+    return (
+      <>
+        <ErrorState message={error} onRetry={onRefresh} hasSavedData={Boolean(dashboard?.program)} />
+        {dashboard?.program && <DashboardOverview dashboard={dashboard} />}
+      </>
+    );
   if (!dashboard?.program) return <ProgramRequiredState />;
 
   if (activeSection === "weight")
@@ -509,10 +518,23 @@ function LoadingState() {
     </section>
   );
 }
-function ErrorState({ message }) {
+function ErrorState({ message, onRetry, hasSavedData }) {
   return (
-    <section className="forge-panel mt-8 rounded-2xl p-8 text-sm text-rose-300">
-      Could not load your dashboard: {message}
+    <section role="alert" className="forge-panel mt-8 rounded-2xl p-8 text-sm text-rose-300">
+      <p>Could not load your dashboard: {message}</p>
+      {hasSavedData && (
+        <p className="mt-2 text-slate-400">
+          Showing the last loaded overview. Recent changes may not appear yet.
+          Retry before making more changes.
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-4 rounded-xl bg-violet-600 px-5 py-2.5 font-semibold text-white hover:bg-violet-500"
+      >
+        Retry
+      </button>
     </section>
   );
 }
