@@ -154,7 +154,7 @@ function DashboardHeading({ displayName }) {
 function DashboardSidebar({ user, activeSection, onSectionChange }) {
   const displayName = user.name || user.username || "Athlete";
   return (
-    <aside className="forge-panel h-fit rounded-2xl p-4 lg:sticky lg:top-6">
+    <aside className="forge-panel h-fit rounded-2xl p-4 lg:sticky lg:top-[calc(var(--spacing)*24+1px)]">
       <div className="flex items-center gap-3 border-b border-violet-500/15 px-2 pb-5">
         {user.image ? (
           <img
